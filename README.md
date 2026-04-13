@@ -1,3 +1,6 @@
+# car_plus_plus
+Acesta este un joc cu o mașină care merge pe autostradă și trebuie mutată de pe o bandă pe alta pentru a nu lovi alte mașini.
+
 # Nu primesc notă pentru că nu am pus titlu și descriere
 
 ### Folosiți template-ul corespunzător grupei voastre!
