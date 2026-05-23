@@ -59,6 +59,29 @@ endif()
 # NOTE: update executable name in .github/workflows/cmake.yml:25 when changing name here
 add_executable(${MAIN_EXECUTABLE_NAME}
     main.cpp
+        src/VertexArrayUtility.cpp
+        include/VertexArrayUtility.h
+
+        src/Scene.cpp
+        include/Scene.h
+
+        src/AppManager.cpp
+        include/AppManager.h
+
+        src/TilePanel.cpp
+        include/TilePanel.h
+
+        src/ReadOnlyText.cpp
+        include/ReadOnlyText.h
+
+        src/EditableText.cpp
+        include/EditableText.h
+
+        src/Greet.cpp
+        include/Greet.h
+
+        src/Menu.cpp
+        include/Menu.h
 )
 target_sources(${MAIN_EXECUTABLE_NAME}
     PRIVATE
