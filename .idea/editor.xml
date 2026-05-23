@@ -341,9 +341,5 @@
     <option name="/Default/CodeStyle/CodeFormatting/CppFormatting/WRAP_BEFORE_TERNARY_OPSIGNS/@EntryValue" value="true" type="bool" />
     <option name="/Default/CodeStyle/CodeFormatting/CppFormatting/WRAP_PARAMETERS_STYLE/@EntryValue" value="WRAP_IF_LONG" type="string" />
     <option name="/Default/CodeStyle/EditorConfig/EnableClangFormatSupport/@EntryValue" value="false" type="bool" />
-    <option name="/Default/CodeStyle/Generate/=CppStreamOperations/@KeyIndexDefined" value="true" type="bool" />
-    <option name="/Default/CodeStyle/Generate/=CppStreamOperations/Options/=OperationType/@EntryIndexedValue" value="Output operator" type="string" />
-    <option name="/Default/CodeStyle/Generate/=CppStreamOperations/Options/=PrivateBoostSerializeOperations/@EntryIndexedValue" value="True" type="string" />
-    <option name="/Default/CodeStyle/Generate/=CppStreamOperations/Options/=UseWideStream/@EntryIndexedValue" value="False" type="string" />
   </component>
 </project>

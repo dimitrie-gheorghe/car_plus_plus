@@ -6,7 +6,77 @@
 #include <SFML/Graphics.hpp>
 #include <utility>
 
-const uint8_t ascii[8 * 95] = {
+
+class VertexArrayUtility {
+    static const uint8_t ascii[8 * 95];
+
+public:
+    static void insertRectangle(sf::VertexArray &v, const int16_t x, const int16_t y, const int16_t w,
+                                const int16_t h, const sf::Color color) {
+        v.append({{static_cast<float>(x), static_cast<float>(y)}, color, {0.0f, 0.0f}});
+
+        v.append({{static_cast<float>(x + w), static_cast<float>(y)}, color, {0.0f, 0.0f}});
+        v.append({{static_cast<float>(x), static_cast<float>(y + h)}, color, {0.0f, 0.0f}});
+
+        v.append({{static_cast<float>(x + w), static_cast<float>(y)}, color, {0.0f, 0.0f}});
+        v.append({{static_cast<float>(x), static_cast<float>(y + h)}, color, {0.0f, 0.0f}});
+
+        v.append({{static_cast<float>(x + w), static_cast<float>(y + h)}, color, {0.0f, 0.0f}});
+    }
+
+    static void moveAt(sf::VertexArray &v, const int16_t newX, const int16_t newY) {
+        if (const size_t len = v.getVertexCount()) {
+            const float stepX = static_cast<float>(newX) - v[0].position.x;
+            const float stepY = static_cast<float>(newY) - v[0].position.y;
+            for (size_t i = 0; i < len; i++) {
+                v[i].position.x += stepX;
+                v[i].position.y += stepY;
+            }
+        }
+    }
+
+    static void translateX(sf::VertexArray &v, const float step) {
+        const size_t len = v.getVertexCount();
+        for (size_t i = 0; i < len; i++) {
+            v[i].position.x += step;
+        }
+    }
+
+    static void translateY(sf::VertexArray &v, const float step) {
+        const size_t len = v.getVertexCount();
+        for (size_t i = 0; i < len; i++) {
+            v[i].position.y += step;
+        }
+    }
+
+    static void insertChar(sf::VertexArray &v, const char c, const int16_t x, const int16_t y, const int16_t pixelSize,
+                           const sf::Color color) {
+        v.setPrimitiveType(sf::PrimitiveType::Triangles);
+
+        if (c != ' ') {
+            uint16_t offset;
+            if (c < '!' || c > '~') {
+                offset = (95 - 1) * 8;
+            } else {
+                offset = (c - '!') * 8;
+            }
+            for (uint16_t i = 0; i < 8; i++) {
+                uint8_t line = ascii[offset + i];
+                for (int16_t j = 0; j < 8; j++) {
+                    const uint8_t _ = line & 1;
+                    line >>= 1;
+                    if (_) {
+                        insertRectangle(v, static_cast<int16_t>(x + pixelSize * (7 - j)),
+                                        static_cast<int16_t>(y + pixelSize * i), pixelSize,
+                                        pixelSize, color);
+                    }
+                }
+            }
+        }
+    }
+};
+
+const uint8_t VertexArrayUtility::ascii[8 * 95] = {
     0b00011000,
     0b00011000,
     0b00011000,
@@ -863,70 +933,96 @@ const uint8_t ascii[8 * 95] = {
     0b01010101
 };
 
-class VertexArrayUtility {
+class Scene {
+    sf::RenderWindow *windowUsedForMainLoop;
+    std::optional<sf::Event> eventForDerivedClasses;
+
+    virtual int manageOtherEvents() = 0;
+
+    virtual int draw() = 0;
+
+protected:
+    Scene(const Scene &other) = default;
+
+    Scene(Scene &&other) noexcept
+        : windowUsedForMainLoop(other.windowUsedForMainLoop),
+          eventForDerivedClasses(other.eventForDerivedClasses) {
+    }
+
+    Scene &operator=(const Scene &other) {
+        if (this == &other)
+            return *this;
+        windowUsedForMainLoop = other.windowUsedForMainLoop;
+        eventForDerivedClasses = other.eventForDerivedClasses;
+        return *this;
+    }
+
+    Scene &operator=(Scene &&other) noexcept {
+        if (this == &other)
+            return *this;
+        windowUsedForMainLoop = other.windowUsedForMainLoop;
+        eventForDerivedClasses = other.eventForDerivedClasses;
+        return *this;
+    }
+
 public:
-    static void insertRectangle(sf::VertexArray &v, const int16_t x, const int16_t y, const int16_t w,
-                                const int16_t h, const sf::Color color) {
-        v.append({{static_cast<float>(x), static_cast<float>(y)}, color, {0.0f, 0.0f}});
-
-        v.append({{static_cast<float>(x + w), static_cast<float>(y)}, color, {0.0f, 0.0f}});
-        v.append({{static_cast<float>(x), static_cast<float>(y + h)}, color, {0.0f, 0.0f}});
-
-        v.append({{static_cast<float>(x + w), static_cast<float>(y)}, color, {0.0f, 0.0f}});
-        v.append({{static_cast<float>(x), static_cast<float>(y + h)}, color, {0.0f, 0.0f}});
-
-        v.append({{static_cast<float>(x + w), static_cast<float>(y + h)}, color, {0.0f, 0.0f}});
+    Scene() {
+        windowUsedForMainLoop = nullptr;
     }
 
-    static void moveAt(sf::VertexArray &v, const int16_t newX, const int16_t newY) {
-        if (const size_t len = v.getVertexCount()) {
-            const float stepX = static_cast<float>(newX) - v[0].position.x;
-            const float stepY = static_cast<float>(newY) - v[0].position.y;
-            for (size_t i = 0; i < len; i++) {
-                v[i].position.x += stepX;
-                v[i].position.y += stepY;
-            }
-        }
+    explicit Scene(sf::RenderWindow *window_) {
+        windowUsedForMainLoop = window_;
     }
 
-    static void translateX(sf::VertexArray &v, const float step) {
-        const size_t len = v.getVertexCount();
-        for (size_t i = 0; i < len; i++) {
-            v[i].position.x += step;
-        }
+    [[nodiscard]] virtual Scene *clone() const = 0;
+
+    virtual ~Scene() = default;
+
+    [[nodiscard]] std::optional<sf::Event> getEventForDerivedClasses() const {
+        return eventForDerivedClasses;
     }
 
-    static void translateY(sf::VertexArray &v, const float step) {
-        const size_t len = v.getVertexCount();
-        for (size_t i = 0; i < len; i++) {
-            v[i].position.y += step;
-        }
-    }
-
-    static void insertChar(sf::VertexArray &v, const char c, const int16_t x, const int16_t y, const int16_t pixelSize,
-                           const sf::Color color) {
-        v.setPrimitiveType(sf::PrimitiveType::Triangles);
-
-        if (c != ' ') {
-            uint16_t offset;
-            if (c < '!' || c > '~') {
-                offset = (95 - 1) * 8;
-            } else {
-                offset = (c - '!') * 8;
-            }
-            for (uint16_t i = 0; i < 8; i++) {
-                uint8_t line = ascii[offset + i];
-                for (int16_t j = 0; j < 8; j++) {
-                    const uint8_t _ = line & 1;
-                    line >>= 1;
-                    if (_) {
-                        insertRectangle(v, static_cast<int16_t>(x + pixelSize * (7 - j)),
-                                        static_cast<int16_t>(y + pixelSize * i), pixelSize,
-                                        pixelSize, color);
+    int play() {
+        int returnedValue = 0;
+        bool shouldExit = false;
+        while (windowUsedForMainLoop->isOpen()) {
+            while (const std::optional event = windowUsedForMainLoop->pollEvent()) {
+                if (event->is<sf::Event::Closed>()) {
+                    shouldExit = true;
+                } else if (const auto *keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
+                        shouldExit = true;
                     }
+                } else if (const auto *resized = event->getIf<sf::Event::Resized>()) {
+                    std::cout << "New width: " << windowUsedForMainLoop->getSize().x << '\n'
+                            << "New height: " << windowUsedForMainLoop->getSize().y << '\n';
+                    // update the view to the new size of the window
+                    sf::FloatRect visibleArea({0.f, 0.f}, sf::Vector2f(resized->size));
+                    windowUsedForMainLoop->setView(sf::View(visibleArea));
                 }
+                eventForDerivedClasses = event;
+                returnedValue = manageOtherEvents();
+            }
+            if (shouldExit) {
+                windowUsedForMainLoop->close();
+                std::cout << "Window closed\n";
+                return -1;
+            }
+
+
+            windowUsedForMainLoop->clear();
+
+            if (returnedValue == 0) {
+                returnedValue = draw();
+            }
+
+            windowUsedForMainLoop->display();
+
+            if (returnedValue != 0) {
+                break;
             }
         }
+        return returnedValue;
     }
 };
 
@@ -1142,7 +1238,7 @@ public:
     }
 };
 
-class EditableText {
+class EditableText : public Scene {
     friend std::ostream &operator<<(std::ostream &os, const EditableText &obj) {
         return os
                << "\nIf you really want to see the contents of this class, take a look at the following lines:"
@@ -1185,6 +1281,8 @@ class EditableText {
     size_t cursorR = 0;
     size_t *selectionHead = &cursorR;
     size_t step = 0;
+    bool ctrl = false;
+    bool shift = false;
 
     void updateVertexArray() {
         textVertexArray.clear();
@@ -1275,24 +1373,44 @@ class EditableText {
         }
     }
 
-public:
-    explicit EditableText(sf::RenderWindow *window_, std::string text_, const int16_t x_, const int16_t y_,
-                          const uint8_t pixelSize_,
-                          const size_t W_, const size_t H_, const sf::Color color_,
-                          const sf::Color background_, const sf::Color cursorColor_) : window(window_),
-        text(std::move(text_)), x(x_),
-        y(y_),
-        pixelSize(pixelSize_), W(W_), H(H_),
-        textColor(color_),
-        backgroundColor(background_), cursorColor(cursorColor_) {
-        updateVertexArray();
+    void deleteSelectedText() {
+        if (cursorL != cursorR) {
+            text.erase(cursorL, cursorR - cursorL + 1);
+            cursorR = cursorL;
+        }
     }
 
-    ~EditableText() = default;
-
-    void draw() const {
+    int draw() override {
         window->draw(backgroundVertexArray);
         window->draw(textVertexArray);
+        return 0;
+    }
+
+    int manageOtherEvents() override {
+        if (const std::optional<sf::Event> event = getEventForDerivedClasses(); event->getIf<sf::Event::Resized>()) {
+            manageResizedEvent();
+        } else if (const auto *textEntered = event->getIf<sf::Event::TextEntered>()) {
+            manageEnteredText(textEntered);
+        } else if (const auto *keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+            if (keyPressed->scancode == sf::Keyboard::Scancode::LControl || keyPressed->scancode ==
+                sf::Keyboard::Scancode::RControl) {
+                ctrl = true;
+            } else if (keyPressed->scancode == sf::Keyboard::Scancode::LShift || keyPressed->scancode ==
+                       sf::Keyboard::Scancode::RShift) {
+                shift = true;
+            } else {
+                manageKey(keyPressed->scancode);
+            }
+        } else if (const auto *keyReleased = event->getIf<sf::Event::KeyReleased>()) {
+            if (keyReleased->scancode == sf::Keyboard::Scancode::LControl || keyReleased->scancode ==
+                sf::Keyboard::Scancode::RControl) {
+                ctrl = false;
+            } else if (keyReleased->scancode == sf::Keyboard::Scancode::LShift || keyReleased->scancode ==
+                       sf::Keyboard::Scancode::RShift) {
+                shift = false;
+            }
+        }
+        return 0;
     }
 
     void manageResizedEvent() {
@@ -1300,19 +1418,6 @@ public:
         W = window->getSize().x;
         H = window->getSize().y;
         updateVertexArray();
-    }
-
-    void moveAt(const int16_t newX, const int16_t newY) {
-        x = newX;
-        y = newY;
-        updateVertexArray();
-    }
-
-    void deleteSelectedText() {
-        if (cursorL != cursorR) {
-            text.erase(cursorL, cursorR - cursorL + 1);
-            cursorR = cursorL;
-        }
     }
 
     void manageEnteredText(const sf::Event::TextEntered *enteredText) {
@@ -1345,7 +1450,7 @@ public:
         updateVertexArray();
     }
 
-    void manageKey(const sf::Keyboard::Scancode k, const bool ctrl, const bool shift) {
+    int manageKey(const sf::Keyboard::Scancode k) {
         bool updateRequired = false;
         size_t newCursor;
         if (selectionHead == &cursorR) {
@@ -1502,10 +1607,28 @@ public:
         if (updateRequired) {
             updateVertexArray();
         }
+        return 0;
+    }
+
+public:
+    explicit EditableText(sf::RenderWindow *window_, std::string text_, const int16_t x_, const int16_t y_,
+                          const uint8_t pixelSize_,
+                          const size_t W_, const size_t H_, const sf::Color color_,
+                          const sf::Color background_, const sf::Color cursorColor_) : Scene(window_), window(window_),
+        text(std::move(text_)), x(x_),
+        y(y_),
+        pixelSize(pixelSize_), W(W_), H(H_),
+        textColor(color_),
+        backgroundColor(background_), cursorColor(cursorColor_) {
+        updateVertexArray();
+    }
+
+    [[nodiscard]] Scene *clone() const override {
+        return new EditableText(*this);
     }
 };
 
-class Greet {
+class Greet : public Scene {
     friend std::ostream &operator<<(std::ostream &os, const Greet &obj) {
         return os
                << "\nIf you really want to see the contents of this class, take a look at the following lines:"
@@ -1557,8 +1680,25 @@ class Greet {
         window->setFramerateLimit(10);
     }
 
+    int manageOtherEvents() override {
+        return 0;
+    };
+
+    int draw() override {
+        matrix.draw();
+        greeting.draw();
+
+        x = static_cast<int16_t>(x - 9 * pixelWidth);
+        if (x < -static_cast<int16_t>(9 * 8 * pixelWidth * textSize)) {
+            resetProperties();
+            return -1;
+        }
+        greeting.moveAt(x, 0);
+        return 0;
+    }
+
 public:
-    explicit Greet(sf::RenderWindow *window_, const std::string &s) {
+    explicit Greet(sf::RenderWindow *window_, const std::string &s) : Scene(window_) {
         textSize = s.size();
 
         W = pixelWidth * 9 * 8 * 3;
@@ -1589,113 +1729,100 @@ public:
         };
     }
 
-    ~Greet() = default;
-
-    int draw() {
-        matrix.draw();
-        greeting.draw();
-
-        x = static_cast<int16_t>(x - 9 * pixelWidth);
-        if (x < -static_cast<int16_t>(9 * 8 * pixelWidth * textSize)) {
-            resetProperties();
-            return 0;
-        }
-        greeting.moveAt(x, 0);
-        return 1;
-    }
-
-    void play() {
-        while (window->isOpen()) {
-            while (const std::optional event = window->pollEvent()) {
-                if (const auto *keyPressed = event->getIf<sf::Event::KeyPressed>()) {
-                    if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
-                        window->close();
-                        std::cout << "Window closed\n";
-                    }
-                }
-            }
-
-            window->clear();
-
-            if (!draw()) {
-                break;
-            }
-
-            window->display();
-        }
+    [[nodiscard]] Scene *clone() const override {
+        return new Greet(*this);
     }
 };
 
-class Menu {
-    friend std::ostream &operator<<(std::ostream &os, const Menu &obj) {
-        return os
-               << "If you really want to see the contents of this class, take a look at the following lines:"
-               << "window: " << obj.window
-               << " text: " << obj.text
-               << "\ncolor: rgba(" << obj.backgroundColor.r << ", " << obj.backgroundColor.g << ", " << obj.
-               backgroundColor.b << ", " << obj.backgroundColor.a << ")"
-               << "\ncursorColor: rgba(" << obj.cursorColor.r << ", " << obj.cursorColor.g << ", " << obj.
-               cursorColor.b << ", " << obj.cursorColor.a << ")"
-               << " actions size: " << obj.actions.size()
-               << " cursor: " << obj.cursor
-               << " backgroundAndCursorVertexArray (vertexCount): " << obj.backgroundAndCursorVertexArray.getVertexCount()
-               << " len: " << obj.len
-               << " lineHeight: " << obj.lineHeight;
-    }
-
+class TilePanel {
+    int8_t cursorX = 0;
+    int8_t cursorY = 0;
     sf::RenderWindow *window;
-    ReadOnlyText text;
+    const int16_t rows;
+    const int16_t columns;
+    const int16_t x;
+    const int16_t y;
+    const int16_t cellW;
+    const int16_t cellH;
+    const sf::Color tableColor;
     const sf::Color backgroundColor;
     const sf::Color cursorColor;
-    std::vector<int8_t> actions;
-    int16_t cursor = 0;
-    sf::VertexArray backgroundAndCursorVertexArray;
-    int16_t len;
-    int16_t lineHeight;
-
-    void updateBackgroundAndCursor() {
-        backgroundAndCursorVertexArray.clear();
-        //background
-        VertexArrayUtility::insertRectangle(backgroundAndCursorVertexArray, 0, 0,
-                                            static_cast<int16_t>(window->getSize().x),
-                                            static_cast<int16_t>(window->getSize().y), backgroundColor);
-        //cursor
-        VertexArrayUtility::insertRectangle(backgroundAndCursorVertexArray, 0,
-                                            static_cast<int16_t>((cursor + 1) * lineHeight),
-                                            static_cast<int16_t>(window->getSize().x), lineHeight, cursorColor);
-    }
-
-    void manageResizedEvent() {
-        text.manageResizedEvent();
-        updateBackgroundAndCursor();
-    }
+    sf::VertexArray backgroundVertexArray;
+    sf::VertexArray tableVertexArray;
+    sf::VertexArray cursorVertexArray;
 
 public:
-    explicit Menu(sf::RenderWindow *window_, std::string parameters_, std::vector<int8_t> actions_,
-                  const uint8_t pixelSize_, const sf::Color textColor_, const sf::Color backgroundColor_,
-                  const sf::Color cursorColor_) : backgroundColor(backgroundColor_), cursorColor(cursorColor_),
-                                                  actions(std::move(actions_)) {
-        window = window_;
+    // The actual sizes of w and h are slightly different from those provided at the function call
+    TilePanel(sf::RenderWindow *window_, const int16_t rows_, const int16_t columns_, const int16_t x_,
+              const int16_t y_, const int16_t w_,
+              const int16_t h_,
+              const sf::Color tableColor_, const sf::Color backgroundColor_,
+              const sf::Color cursorColor_) : window(window_),
+                                              rows(rows_),
+                                              columns(columns_),
+                                              x(x_),
+                                              y(y_),
+                                              cellW(static_cast<int16_t>(w_ / columns)),
+                                              cellH(static_cast<int16_t>(h_ / rows)),
+                                              tableColor(tableColor_),
+                                              backgroundColor(backgroundColor_),
+                                              cursorColor(cursorColor_) {
+        backgroundVertexArray.setPrimitiveType(sf::PrimitiveType::Triangles);
+        VertexArrayUtility::insertRectangle(backgroundVertexArray, 0, 0, static_cast<int16_t>(window->getSize().x),
+                                            static_cast<int16_t>(window->getSize().y), backgroundColor);
 
-        lineHeight = static_cast<int16_t>(pixelSize_ * 9);
+        tableVertexArray.setPrimitiveType(sf::PrimitiveType::Triangles);
 
-        backgroundAndCursorVertexArray.setPrimitiveType(sf::PrimitiveType::Triangles);
-        updateBackgroundAndCursor();
+        // horizontal lines
+        for (int i = 0; i <= rows; i++) {
+            VertexArrayUtility::insertRectangle(tableVertexArray, x, static_cast<int16_t>(y + cellH * i),
+                                                static_cast<int16_t>(cellW * columns + 10), 10, tableColor);
+        }
+        // vertical lines
+        for (int i = 0; i <= columns; i++) {
+            VertexArrayUtility::insertRectangle(tableVertexArray, static_cast<int16_t>(x + cellW * i), y, 10,
+                                                static_cast<int16_t>(cellH * rows), tableColor);
+        }
 
-        len = 0;
-        for (const char parameter: parameters_) {
-            if (parameter == '\n') {
-                len++;
+        std::vector<sf::Color> t;
+        int cell = rows * columns;
+        int colorUnit = 16777215 / (rows * columns);
+        std::cout << colorUnit;
+
+        for (int c = 0; (c < 16777216) && cell; c += colorUnit) {
+            int r = c;
+            int g = r % 256;
+            r /= 256;
+            int b = r % 256;
+            r /= 256;
+            std::cout << r << " " << g << " " << b << "\n";
+
+            t.insert(t.end(), sf::Color(r, g, b));
+            cell--;
+        }
+        int p = 0;
+        for (int j = 0; j < rows; j++) {
+            for (int i = 0; i < columns; i++) {
+                VertexArrayUtility::insertRectangle(tableVertexArray, static_cast<int16_t>(x + 10 + cellW * i),
+                                                    static_cast<int16_t>(y + 10 + cellH * j),
+                                                    static_cast<int16_t>(cellW - 10), static_cast<int16_t>(cellH - 10),
+                                                    t[p++]);
             }
         }
 
-        text = ReadOnlyText{
-            window, std::move(parameters_), 0, 0, pixelSize_, window->getSize().x, window->getSize().y, textColor_,
-            sf::Color::Transparent, false
-        };
-    }
-
-    ~Menu() = default;
+        // cursor
+        cursorVertexArray.setPrimitiveType(sf::PrimitiveType::Triangles);
+        // horizontal lines
+        for (int i = 0; i <= 1; i++) {
+            VertexArrayUtility::insertRectangle(cursorVertexArray, x, static_cast<int16_t>(y + cellH * i),
+                                                static_cast<int16_t>(cellW + 10), 10, cursorColor);
+        }
+        // vertical lines
+        for (int i = 0; i <= 1; i++) {
+            VertexArrayUtility::insertRectangle(cursorVertexArray, static_cast<int16_t>(x + cellW * i), y, 10, cellH,
+                                                cursorColor);
+        }
+    };
 
     int play() {
         int returnedValue = -1;
@@ -1736,6 +1863,100 @@ public:
         return returnedValue;
     }
 
+    void manageResizedEvent() {
+        backgroundVertexArray.clear();
+        VertexArrayUtility::insertRectangle(backgroundVertexArray, 0, 0, static_cast<int16_t>(window->getSize().x),
+                                            static_cast<int16_t>(window->getSize().y), backgroundColor);
+    }
+
+    int manageKey(const sf::Keyboard::Scancode k) {
+        const int8_t oldCursorX = cursorX;
+        const int8_t oldCursorY = cursorY;
+        if (k == sf::Keyboard::Scancode::Right) {
+            cursorX++;
+        } else if (k == sf::Keyboard::Scancode::Left) {
+            cursorX--;
+        }
+        if (k == sf::Keyboard::Scancode::Up) {
+            cursorY--;
+        } else if (k == sf::Keyboard::Scancode::Down) {
+            cursorY++;
+        }
+        //repair overflow/underflow movements
+        if (cursorX == -1) {
+            cursorX = 0;
+        } else if (cursorX == columns) {
+            cursorX--;
+        }
+        if (cursorY == -1) {
+            cursorY = 0;
+        } else if (cursorY == rows) {
+            cursorY--;
+        }
+        //update cursor coordinates
+        if ((cursorX != oldCursorX) || (cursorY != oldCursorY)) {
+            VertexArrayUtility::moveAt(cursorVertexArray, static_cast<int16_t>(x + cellW * cursorX),
+                                       static_cast<int16_t>(y + cellH * cursorY));
+        }
+
+        if (k == sf::Keyboard::Scancode::Enter) {
+            return 0;
+        }
+        return -1;
+    }
+
+    void draw() const {
+        window->draw(backgroundVertexArray);
+        window->draw(tableVertexArray);
+        window->draw(cursorVertexArray);
+    }
+};
+
+class Menu : public Scene {
+    friend std::ostream &operator<<(std::ostream &os, const Menu &obj) {
+        return os
+               << "If you really want to see the contents of this class, take a look at the following lines:"
+               << "window: " << obj.window
+               << " text: " << obj.text
+               << "\ncolor: rgba(" << obj.backgroundColor.r << ", " << obj.backgroundColor.g << ", " << obj.
+               backgroundColor.b << ", " << obj.backgroundColor.a << ")"
+               << "\ncursorColor: rgba(" << obj.cursorColor.r << ", " << obj.cursorColor.g << ", " << obj.
+               cursorColor.b << ", " << obj.cursorColor.a << ")"
+               << " actions size: " << obj.actions.size()
+               << " cursor: " << obj.cursor
+               << " backgroundAndCursorVertexArray (vertexCount): " << obj.backgroundAndCursorVertexArray.
+               getVertexCount()
+               << " len: " << obj.len
+               << " lineHeight: " << obj.lineHeight;
+    }
+
+    sf::RenderWindow *window;
+    ReadOnlyText text;
+    const sf::Color backgroundColor;
+    const sf::Color cursorColor;
+    std::vector<int8_t> actions;
+    int16_t cursor = 0;
+    sf::VertexArray backgroundAndCursorVertexArray;
+    int16_t len;
+    int16_t lineHeight;
+
+    void updateBackgroundAndCursor() {
+        backgroundAndCursorVertexArray.clear();
+        //background
+        VertexArrayUtility::insertRectangle(backgroundAndCursorVertexArray, 0, 0,
+                                            static_cast<int16_t>(window->getSize().x),
+                                            static_cast<int16_t>(window->getSize().y), backgroundColor);
+        //cursor
+        VertexArrayUtility::insertRectangle(backgroundAndCursorVertexArray, 0,
+                                            static_cast<int16_t>((cursor + 1) * lineHeight),
+                                            static_cast<int16_t>(window->getSize().x), lineHeight, cursorColor);
+    }
+
+    void manageResizedEvent() {
+        text.manageResizedEvent();
+        updateBackgroundAndCursor();
+    }
+
     int manageKey(const sf::Keyboard::Scancode k) {
         const int16_t oldCursor = cursor;
         if (k == sf::Keyboard::Scancode::Right || k == sf::Keyboard::Scancode::Down) {
@@ -1756,21 +1977,109 @@ public:
             updateBackgroundAndCursor();
         }
 
-        return -1;
+        return 0;
     }
 
-    void draw() const {
+    int manageOtherEvents() override {
+        if (const std::optional<sf::Event> event = getEventForDerivedClasses(); event->getIf<sf::Event::Resized>()) {
+            manageResizedEvent();
+        } else if (const auto *keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+            manageKey(keyPressed->scancode);
+        }
+        return 0;
+    }
+
+    int draw() override {
         window->draw(backgroundAndCursorVertexArray);
         text.draw();
+        return 0;
     }
+
+public:
+    explicit Menu(sf::RenderWindow *window_, std::string parameters_, std::vector<int8_t> actions_,
+                  const uint8_t pixelSize_, const sf::Color textColor_, const sf::Color backgroundColor_,
+                  const sf::Color cursorColor_) : Scene(window_), backgroundColor(backgroundColor_),
+                                                  cursorColor(cursorColor_),
+                                                  actions(std::move(actions_)) {
+        window = window_;
+
+        lineHeight = static_cast<int16_t>(pixelSize_ * 9);
+
+        backgroundAndCursorVertexArray.setPrimitiveType(sf::PrimitiveType::Triangles);
+        updateBackgroundAndCursor();
+
+        len = 0;
+        for (const char parameter: parameters_) {
+            if (parameter == '\n') {
+                len++;
+            }
+        }
+
+        text = ReadOnlyText{
+            window, std::move(parameters_), 0, 0, pixelSize_, window->getSize().x, window->getSize().y, textColor_,
+            sf::Color::Transparent, false
+        };
+    }
+
+    [[nodiscard]] Scene *clone() const override {
+        return new Menu(*this);
+    }
+
+    // int play() {
+    //     int returnedValue = -1;
+    //     while (window->isOpen()) {
+    //         while (const std::optional event = window->pollEvent()) {
+    //             if (event->is<sf::Event::Closed>()) {
+    //                 window->close();
+    //                 std::cout << "Window closed\n";
+    //                 return -2;
+    //             }
+    //             if (const auto *resized = event->getIf<sf::Event::Resized>()) {
+    //                 std::cout << "New width: " << window->getSize().x << '\n'
+    //                         << "New height: " << window->getSize().y << '\n';
+    //                 // update the view to the new size of the window
+    //                 sf::FloatRect visibleArea({0.f, 0.f}, sf::Vector2f(resized->size));
+    //                 window->setView(sf::View(visibleArea));
+    //
+    //                 manageResizedEvent();
+    //             } else if (const auto *keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+    //                 if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
+    //                     window->close();
+    //                     std::cout << "Window closed\n";
+    //                     return -2;
+    //                 }
+    //                 returnedValue = manageKey(keyPressed->scancode);
+    //             }
+    //         }
+    //         if (returnedValue != -1) {
+    //             break;
+    //         }
+    //
+    //         window->clear();
+    //
+    //         draw();
+    //
+    //         window->display();
+    //     }
+    //     return returnedValue;
+    // }
 };
 
+// class SceneManager {
+//     Scene* s;
+//
+// };
 
 int main() {
+    constexpr sf::Color textColor = sf::Color::Black;
+    constexpr sf::Color backgroundColor = sf::Color::White;
+    constexpr sf::Color cursorColor = sf::Color::Green;
+
     sf::RenderWindow window;
     window.create(sf::VideoMode({800, 700}), "car_plus_plus", sf::Style::Default, sf::State::Windowed);
     std::cout << "The window was created successfully\n";
     window.setFramerateLimit(10);
+
 
     std::ifstream input("tastatura.txt");
     std::string s, tmp;
@@ -1784,27 +2093,23 @@ int main() {
         }
     }
     input.close();
-    EditableText t(&window, s, 0, 0, 2, window.getSize().x, window.getSize().y, sf::Color::Black, sf::Color::White,
-                   sf::Color::Green);
-    std::cout << t;
 
-    auto *g = new Greet(&window, "Welcome to car++!");
-    std::cout << *g;
-    g->play();
-    delete g;
+    // auto *g = new Greet(&window, "Welcome to car++!");
+    // std::cout << *g;
+    // g->play();
+    // delete g;
 
     std::string parameters = "MAIN MENU\nsettings\nnew file\nopen from disk\nAI mode\ndemo text editor";
     std::vector<int8_t> actions = {1, 2, 3, 4, 5};
     int scene = 0;
-    while (scene != -2) {
+    while (scene != -1) {
         if (scene == 0) {
-            auto *m = new Menu(&window, parameters, actions, 3, sf::Color::Black, sf::Color::White, sf::Color::Green);
+            auto *m = new Menu(&window, parameters, actions, 3, textColor, backgroundColor, cursorColor);
             std::cout << *m;
             scene = m->play();
             delete m;
         } else if (scene == 1) {
-            auto *m = new Greet(&window, "settings");
-            std::cout << *m;
+            auto *m = new TilePanel(&window, 10, 10, 0, 0, 500, 250, textColor, backgroundColor, cursorColor);
             m->play();
             scene = 0;
             delete m;
@@ -1827,63 +2132,14 @@ int main() {
             delete m;
             return 0;
         } else if (scene == 5) {
-            scene = -2;
+            auto *m = new EditableText(&window, s, 0, 0, 2, window.getSize().x, window.getSize().y, textColor,
+                                       backgroundColor,
+                                       cursorColor);
+            std::cout << *m;
+            m->play();
+            scene = 0;
+            delete m;
         }
-    }
-
-
-    bool ctrl = false;
-    bool shift = false;
-    auto k = sf::Keyboard::Scan::Unknown;
-    while (window.isOpen()) {
-        while (const std::optional event = window.pollEvent()) {
-            if (event->is<sf::Event::Closed>()) {
-                window.close();
-                std::cout << "Window closed\n";
-            } else if (const auto *resized = event->getIf<sf::Event::Resized>()) {
-                std::cout << "New width: " << window.getSize().x << '\n'
-                        << "New height: " << window.getSize().y << '\n';
-                // update the view to the new size of the window
-                sf::FloatRect visibleArea({0.f, 0.f}, sf::Vector2f(resized->size));
-                window.setView(sf::View(visibleArea));
-
-                t.manageResizedEvent();
-            } else if (const auto *textEntered = event->getIf<sf::Event::TextEntered>()) {
-                t.manageEnteredText(textEntered);
-            } else if (const auto *keyPressed = event->getIf<sf::Event::KeyPressed>()) {
-                if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
-                    window.close();
-                    std::cout << "Window closed\n";
-                } else if (keyPressed->scancode == sf::Keyboard::Scancode::LControl || keyPressed->scancode ==
-                           sf::Keyboard::Scancode::RControl) {
-                    ctrl = true;
-                } else if (keyPressed->scancode == sf::Keyboard::Scancode::LShift || keyPressed->scancode ==
-                           sf::Keyboard::Scancode::RShift) {
-                    shift = true;
-                } else {
-                    k = keyPressed->scancode;
-                }
-            } else if (const auto *keyReleased = event->getIf<sf::Event::KeyReleased>()) {
-                if (keyReleased->scancode == sf::Keyboard::Scancode::LControl || keyReleased->scancode ==
-                    sf::Keyboard::Scancode::RControl) {
-                    ctrl = false;
-                } else if (keyReleased->scancode == sf::Keyboard::Scancode::LShift || keyReleased->scancode ==
-                           sf::Keyboard::Scancode::RShift) {
-                    shift = false;
-                }
-            }
-        }
-
-        if (k != sf::Keyboard::Scan::Unknown) {
-            t.manageKey(k, ctrl, shift);
-            k = sf::Keyboard::Scan::Unknown; // very important to avoid repeated calls of manageKey()
-        }
-
-        window.clear();
-
-        t.draw();
-
-        window.display();
     }
 
     std::cout << "The program finished successfully\n";
