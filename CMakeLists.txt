@@ -82,6 +82,8 @@ add_executable(${MAIN_EXECUTABLE_NAME}
 
         src/Menu.cpp
         include/Menu.h
+        include/Ascii.cpp
+        include/Ascii.h
 )
 target_sources(${MAIN_EXECUTABLE_NAME}
     PRIVATE

@@ -6,11 +6,16 @@
 #define OOP_VERTEXARRAYUTILITY_H
 
 #include <SFML/Graphics.hpp>
+#include "./Ascii.h"
 
 class VertexArrayUtility {
-    static const uint8_t ascii[8 * 95];
+    Ascii ascii;
+    // VertexArrayUtility();
+    // static uint8_t ascii[8 * 95];
 
 public:
+    static void setAscii(int index, int value);
+
     static void insertRectangle(sf::VertexArray &v, int16_t x, int16_t y, int16_t w,
                                 int16_t h, sf::Color color);
 
