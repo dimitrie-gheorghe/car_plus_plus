@@ -10,6 +10,8 @@ You can use almost all the common controls shared by most text editors.
 
 However, don't use ctrl+Z (undo), because it is not yet implemented (and probably it will never be).
 
+To navigate through the menu, use arrows+enter.
+Important: when you set the colors, the program ensures that background != text != cursor, so if they are not updated, it is not a bug.
 
 ## License
 
