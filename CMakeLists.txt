@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.26)
 
+
 # NOTE: update executable name in .github/workflows/cmake.yml:25 when changing executable name in this file
 # for now, the project name is used as the executable name
 set(MAIN_PROJECT_NAME "oop")
@@ -64,6 +65,9 @@ target_sources(${MAIN_EXECUTABLE_NAME}
     PRIVATE
         src/Example.cpp
 )
+target_compile_definitions(${MAIN_EXECUTABLE_NAME} PRIVATE
+        SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+)
 
 # NOTE: Add all defined targets (e.g. executables, libraries, etc. )
 # NOTE: RUN_SANITIZERS is optional, if it's not present it will default to true
@@ -99,6 +103,10 @@ if(APPLE)
     install(FILES launcher.command DESTINATION ${DESTINATION_DIR})
 endif()
 
-copy_files(FILES tastatura.txt DIRECTORY assets COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
-# copy_files(FILES tastatura.txt config.json DIRECTORY images sounds COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
-# copy_files(DIRECTORY images sounds COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
+copy_files(FILES tastatura.txt ./assets/font.txt ./assets/tilePanelData.txt DIRECTORY assets COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
+copy_files(
+        FILES config/settings.txt
+        DIRECTORY config
+        COPY_TO_DESTINATION
+        TARGET_NAME ${MAIN_EXECUTABLE_NAME}
+)
