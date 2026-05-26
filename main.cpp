@@ -10,18 +10,9 @@
 #include <SFML/Graphics.hpp>
 #include <utility>
 
-class VertexArrayUtility {
+class FontManager {
     uint8_t ascii[8 * 95]{};
-
-public:
-    virtual ~VertexArrayUtility() = default;
-
-    friend std::ostream &operator<<(std::ostream &os, const VertexArrayUtility &obj) {
-        os << obj.ascii[0];
-        return os;
-    }
-
-    VertexArrayUtility() {
+    FontManager() {
         std::ifstream input("./assets/font.txt");
         int x;
         for (unsigned char &i: ascii) {
@@ -30,6 +21,17 @@ public:
         }
         input.close();
     }
+public:
+    static const FontManager& getInstance() {
+        static FontManager instance;
+        return instance;
+    }
+    uint8_t getByte(const size_t index) const {
+        return ascii[index];
+    }
+};
+
+namespace VertexArrayUtility {
 
     static void insertRectangle(sf::VertexArray &v, const int16_t x, const int16_t y, const int16_t w,
                                 const int16_t h, const sf::Color color) {
@@ -55,22 +57,8 @@ public:
         }
     }
 
-    static void translateX(sf::VertexArray &v, const float step) {
-        const size_t len = v.getVertexCount();
-        for (size_t i = 0; i < len; i++) {
-            v[i].position.x += step;
-        }
-    }
-
-    static void translateY(sf::VertexArray &v, const float step) {
-        const size_t len = v.getVertexCount();
-        for (size_t i = 0; i < len; i++) {
-            v[i].position.y += step;
-        }
-    }
-
-    void insertChar(sf::VertexArray &v, const char c, const int16_t x, const int16_t y, const int16_t pixelSize,
-                    const sf::Color color) const {
+    static void insertChar(sf::VertexArray &v, const char c, const int16_t x, const int16_t y, const int16_t pixelSize,
+                    const sf::Color color) {
         v.setPrimitiveType(sf::PrimitiveType::Triangles);
 
         if (c != ' ') {
@@ -81,7 +69,7 @@ public:
                 offset = (c - '!') * 8;
             }
             for (uint16_t i = 0; i < 8; i++) {
-                uint8_t line = ascii[offset + i];
+                uint8_t line = FontManager::getInstance().getByte(offset + i);
                 for (int16_t j = 0; j < 8; j++) {
                     const uint8_t _ = line & 1;
                     line >>= 1;
@@ -392,11 +380,10 @@ public:
     }
 };
 
-class ReadOnlyText : VertexArrayUtility {
+class ReadOnlyText {
 public:
     friend std::ostream &operator<<(std::ostream &os, const ReadOnlyText &obj) {
         os << "This is the ReadOnlyText class"
-                << static_cast<const VertexArrayUtility &>(obj)
                 << " target: " << obj.target
                 << " text: " << obj.text
                 << " x: " << obj.x
@@ -413,8 +400,7 @@ public:
     ReadOnlyText(const ReadOnlyText &other) = default;
 
     ReadOnlyText(ReadOnlyText &&other) noexcept
-        : VertexArrayUtility(std::move(other)),
-          target(other.target),
+        : target(other.target),
           text(std::move(other.text)),
           x(other.x),
           y(other.y),
@@ -429,7 +415,6 @@ public:
     ReadOnlyText &operator=(const ReadOnlyText &other) {
         if (this == &other)
             return *this;
-        VertexArrayUtility::operator =(other);
         target = other.target;
         text = other.text;
         x = other.x;
@@ -446,7 +431,6 @@ public:
     ReadOnlyText &operator=(ReadOnlyText &&other) noexcept {
         if (this == &other)
             return *this;
-        VertexArrayUtility::operator =(std::move(other));
         target = other.target;
         text = std::move(other.text);
         x = other.x;
@@ -509,7 +493,7 @@ private:
 
             for (int16_t r = y; i < size; r = static_cast<int16_t>(r + charPoz)) {
                 for (int16_t c = x; c <= rightLimit && i < size; c = static_cast<int16_t>(c + charPoz)) {
-                    insertChar(textVertexArray, formattedText[i], c, r, pixelSize, textColor);
+                    VertexArrayUtility::insertChar(textVertexArray, formattedText[i], c, r, pixelSize, textColor);
                     i++;
                 }
             }
@@ -532,7 +516,7 @@ private:
                 int16_t c = x;
 
                 while (i < size && formattedText[i] != '\n') {
-                    insertChar(textVertexArray, formattedText[i], c, r, pixelSize, textColor);
+                    VertexArrayUtility::insertChar(textVertexArray, formattedText[i], c, r, pixelSize, textColor);
                     i++;
                     c = static_cast<int16_t>(c + charPoz);
                 }
@@ -608,7 +592,7 @@ public:
     }
 };
 
-class EditableText : public Scene, VertexArrayUtility {
+class EditableText : public Scene {
     std::string text;
     int16_t x = 0;
     int16_t y = 0;
@@ -683,14 +667,14 @@ class EditableText : public Scene, VertexArrayUtility {
         for (size_t r = y; visibleTextL < visibleTextR; r += charPoz) {
             for (size_t c = x; c <= rightLimit && visibleTextL < visibleTextR; c += charPoz) {
                 if (formattedCursorL <= visibleTextL && visibleTextL <= formattedCursorR) {
-                    insertRectangle(textVertexArray, static_cast<int16_t>(c),
+                    VertexArrayUtility::insertRectangle(textVertexArray, static_cast<int16_t>(c),
                                     static_cast<int16_t>(r),
                                     static_cast<int16_t>(Settings::getInstance().pixel_size() * 9),
                                     static_cast<int16_t>(Settings::getInstance().pixel_size() * 9),
                                     Settings::getInstance().cursor_color());
                 }
                 if ('!' <= formattedText[visibleTextL] && formattedText[visibleTextL] <= '~') {
-                    insertChar(textVertexArray, formattedText[visibleTextL],
+                    VertexArrayUtility::insertChar(textVertexArray, formattedText[visibleTextL],
                                static_cast<int16_t>(c), static_cast<int16_t>(r), Settings::getInstance().pixel_size(),
                                Settings::getInstance().text_color());
                 }
@@ -896,7 +880,6 @@ public:
     friend std::ostream &operator<<(std::ostream &os, const EditableText &obj) {
         os << "This is the EditableText class: "
                 << static_cast<const Scene &>(obj)
-                << ' ' << static_cast<const VertexArrayUtility &>(obj)
                 << " text: " << obj.text
                 << " x: " << obj.x
                 << " y: " << obj.y
@@ -1065,8 +1048,7 @@ public:
     ~Greet() override = default;
 };
 
-
-class TilePanel : public Scene, VertexArrayUtility {
+class TilePanel : public Scene {
     sf::RenderWindow *window = nullptr;
     std::string titleText;
     const uint8_t target;
@@ -1106,7 +1088,7 @@ class TilePanel : public Scene, VertexArrayUtility {
 
         // grid
         for (int i = 0; i <= rows; i++) {
-            insertRectangle(
+            VertexArrayUtility::insertRectangle(
                 tableVertexArray,
                 x,
                 static_cast<int16_t>(y + cellH * i),
@@ -1117,7 +1099,7 @@ class TilePanel : public Scene, VertexArrayUtility {
         }
 
         for (int i = 0; i <= columns; i++) {
-            insertRectangle(
+            VertexArrayUtility::insertRectangle(
                 tableVertexArray,
                 static_cast<int16_t>(x + cellW * i),
                 y,
@@ -1133,7 +1115,7 @@ class TilePanel : public Scene, VertexArrayUtility {
                 input >> r >> g >> b;
                 colors.emplace_back(r, g, b);
 
-                insertRectangle(
+                VertexArrayUtility::insertRectangle(
                     tableVertexArray,
                     static_cast<int16_t>(x + 10 + cellW * i),
                     static_cast<int16_t>(y + 10 + cellH * j),
@@ -1150,12 +1132,12 @@ class TilePanel : public Scene, VertexArrayUtility {
         cursorVertexArray.setPrimitiveType(sf::PrimitiveType::Triangles);
         // horizontal lines
         for (int i = 0; i <= 1; i++) {
-            insertRectangle(cursorVertexArray, x, static_cast<int16_t>(y + cellH * i), static_cast<int16_t>(cellW + 10),
+            VertexArrayUtility::insertRectangle(cursorVertexArray, x, static_cast<int16_t>(y + cellH * i), static_cast<int16_t>(cellW + 10),
                             10, Settings::getInstance().cursor_color());
         }
         // vertical lines
         for (int i = 0; i <= 1; i++) {
-            insertRectangle(cursorVertexArray, static_cast<int16_t>(x + cellW * i), y, 10, cellH,
+            VertexArrayUtility::insertRectangle(cursorVertexArray, static_cast<int16_t>(x + cellW * i), y, 10, cellH,
                             Settings::getInstance().cursor_color());
         }
     }
@@ -1165,7 +1147,7 @@ class TilePanel : public Scene, VertexArrayUtility {
     }
 
     void updateCursor() {
-        moveAt(
+        VertexArrayUtility::moveAt(
             cursorVertexArray,
             static_cast<int16_t>(x + cellW * cursorX),
             static_cast<int16_t>(y + cellH * cursorY)
@@ -1197,7 +1179,6 @@ public:
     friend std::ostream &operator<<(std::ostream &os, const TilePanel &obj) {
         os << "This is the TilePanel class: "
                 << static_cast<const Scene &>(obj)
-                << ' ' << static_cast<const VertexArrayUtility &>(obj)
                 << " window: " << obj.window
                 << " titleText: " << obj.titleText
                 << " target: " << obj.target
@@ -1335,7 +1316,7 @@ public:
     ~TilePanel() override = default;
 };
 
-class Menu : public Scene, VertexArrayUtility {
+class Menu : public Scene {
     sf::RenderWindow *window = nullptr;
     ReadOnlyText text;
     std::vector<SceneID> actions;
@@ -1355,7 +1336,7 @@ class Menu : public Scene, VertexArrayUtility {
         cursorVertexArray.clear();
         cursorVertexArray.setPrimitiveType(sf::PrimitiveType::Triangles);
 
-        insertRectangle(
+        VertexArrayUtility::insertRectangle(
             cursorVertexArray,
             0,
             static_cast<int16_t>((cursor + 1) * lineHeight),
@@ -1383,7 +1364,6 @@ public:
     friend std::ostream &operator<<(std::ostream &os, const Menu &obj) {
         os << "This is the Menu class: "
                 << static_cast<const Scene &>(obj)
-                << ' ' << static_cast<const VertexArrayUtility &>(obj)
                 << " window: " << obj.window
                 << " text: " << obj.text
                 << " actions: " << obj.actions.size()
