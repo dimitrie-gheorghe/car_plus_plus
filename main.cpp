@@ -93,7 +93,6 @@ public:
 };
 
 class Settings {
-
     int16_t windowW = 800;
     int16_t windowH = 700;
     int16_t pixelSize = 2;
@@ -175,15 +174,16 @@ class Settings {
     }
 
 public:
-    friend std::ostream & operator<<(std::ostream &os, const Settings &obj) {
-        os     << "windowW: " << obj.windowW
-               << " windowH: " << obj.windowH
-               << " pixelSize: " << obj.pixelSize
-               << " backgroundColor: " << obj.backgroundColor.toInteger()
-               << " textColor: " << obj.textColor.toInteger()
-               << " cursorColor: " << obj.cursorColor.toInteger();
-        return  os;
+    friend std::ostream &operator<<(std::ostream &os, const Settings &obj) {
+        os << "windowW: " << obj.windowW
+                << " windowH: " << obj.windowH
+                << " pixelSize: " << obj.pixelSize
+                << " backgroundColor: " << obj.backgroundColor.toInteger()
+                << " textColor: " << obj.textColor.toInteger()
+                << " cursorColor: " << obj.cursorColor.toInteger();
+        return os;
     }
+
     Settings() {
         loadSettings();
     }
@@ -285,10 +285,10 @@ protected:
     bool requestExit = false;
 
 public:
-    friend std::ostream & operator<<(std::ostream &os, const Scene &obj) {
+    friend std::ostream &operator<<(std::ostream &os, const Scene &obj) {
         os << "These are the contents of the Scene class: "
-               << "window: " << obj.window
-               << " requestExit: " << obj.requestExit;
+                << "window: " << obj.window
+                << " requestExit: " << obj.requestExit;
         return os;
     }
 
@@ -299,7 +299,8 @@ public:
 
     virtual void manageEvent() = 0;
 
-    virtual void update() {}
+    virtual void update() {
+    }
 
     virtual void draw() = 0;
 
@@ -334,15 +335,15 @@ public:
 };
 
 class Button : public Scene {
-
     std::function<void()> action;
     SceneID sceneToReturnAt;
 
 public:
-    friend std::ostream & operator<<(std::ostream &os, const Button &obj) {
-        os << "Buttons don't have much data..." << static_cast<const Scene &>(obj);
+    friend std::ostream &operator<<(std::ostream &os, const Button &obj) {
+        os << "Buttons don't have much data... : " << static_cast<const Scene &>(obj);
         return os;
     }
+
     Button(sf::RenderWindow *window, std::function<void()> func, const SceneID returnScene)
         : Scene(window), action(std::move(func)), sceneToReturnAt(returnScene) {
     }
@@ -361,25 +362,25 @@ public:
 };
 
 class ReadOnlyText : VertexArrayUtility {
-
 public:
-    friend std::ostream & operator<<(std::ostream &os, const ReadOnlyText &obj) {
+    friend std::ostream &operator<<(std::ostream &os, const ReadOnlyText &obj) {
         os << "This is the ReadOnlyText class"
-               << static_cast<const VertexArrayUtility &>(obj)
-               << " target: " << obj.target
-               << " text: " << obj.text
-               << " x: " << obj.x
-               << " y: " << obj.y
-               << " pixelSize: " << obj.pixelSize
-               << " W: " << obj.W
-               << " H: " << obj.H
-               << " textColor: " << obj.textColor.toInteger()
-               << " backgroundColor: " << obj.backgroundColor.toInteger()
-               << " lineWrappable: " << obj.lineWrappable
-               << " backgroundVertexArray: " << obj.backgroundVertexArray.getVertexCount()
-               << " textVertexArray: " << obj.textVertexArray.getVertexCount();
+                << static_cast<const VertexArrayUtility &>(obj)
+                << " target: " << obj.target
+                << " text: " << obj.text
+                << " x: " << obj.x
+                << " y: " << obj.y
+                << " pixelSize: " << obj.pixelSize
+                << " W: " << obj.W
+                << " H: " << obj.H
+                << " textColor: " << obj.textColor.toInteger()
+                << " backgroundColor: " << obj.backgroundColor.toInteger()
+                << " lineWrappable: " << obj.lineWrappable
+                << " backgroundVertexArray: " << obj.backgroundVertexArray.getVertexCount()
+                << " textVertexArray: " << obj.textVertexArray.getVertexCount();
         return os;
     }
+
     ReadOnlyText(const ReadOnlyText &other) = default;
 
     ReadOnlyText(ReadOnlyText &&other) noexcept
@@ -536,7 +537,6 @@ private:
     }
 
 public:
-
     ReadOnlyText() : lineWrappable(true) {
         target = nullptr;
         x = 0;
@@ -549,7 +549,8 @@ public:
     explicit ReadOnlyText(sf::RenderTarget *target_, std::string text_, const int16_t x_, const int16_t y_,
                           const uint8_t pixelSize_,
                           const size_t W_, const size_t H_, const sf::Color color_,
-                          const sf::Color background_, const bool lineWrappable_ = true) : target(target_),text(std::move(text_)),
+                          const sf::Color background_, const bool lineWrappable_ = true) : target(target_),
+        text(std::move(text_)),
         x(x_), y(y_),
         pixelSize(pixelSize_), W(W_), H(H_),
         textColor(color_),
@@ -605,7 +606,6 @@ public:
 };
 
 class EditableText : public Scene, VertexArrayUtility {
-
     std::string text;
     int16_t x = 0;
     int16_t y = 0;
@@ -879,25 +879,26 @@ class EditableText : public Scene, VertexArrayUtility {
     // }
 
 public:
-    friend std::ostream & operator<<(std::ostream &os, const EditableText &obj) {
+    friend std::ostream &operator<<(std::ostream &os, const EditableText &obj) {
         os << "This is the EditableText class: "
-               << static_cast<const Scene &>(obj)
-               << ' ' << static_cast<const VertexArrayUtility &>(obj)
-               << " text: " << obj.text
-               << " x: " << obj.x
-               << " y: " << obj.y
-               << " W: " << obj.W
-               << " H: " << obj.H
-               << " backgroundVertexArray: " << obj.backgroundVertexArray.getVertexCount()
-               << " textVertexArray: " << obj.textVertexArray.getVertexCount()
-               << " cursorL: " << obj.cursorL
-               << " cursorR: " << obj.cursorR
-               << " selectionHead: " << obj.selectionHead
-               << " step: " << obj.step
-               << " ctrl: " << obj.ctrl
-               << " shift: " << obj.shift;
+                << static_cast<const Scene &>(obj)
+                << ' ' << static_cast<const VertexArrayUtility &>(obj)
+                << " text: " << obj.text
+                << " x: " << obj.x
+                << " y: " << obj.y
+                << " W: " << obj.W
+                << " H: " << obj.H
+                << " backgroundVertexArray: " << obj.backgroundVertexArray.getVertexCount()
+                << " textVertexArray: " << obj.textVertexArray.getVertexCount()
+                << " cursorL: " << obj.cursorL
+                << " cursorR: " << obj.cursorR
+                << " selectionHead: " << obj.selectionHead
+                << " step: " << obj.step
+                << " ctrl: " << obj.ctrl
+                << " shift: " << obj.shift;
         return os;
     }
+
     explicit EditableText(sf::RenderWindow *window_, std::string text_, const int16_t x_, const int16_t y_,
                           const size_t W_, const size_t H_)
         : Scene(window_), text(std::move(text_)), x(x_), y(y_), W(W_), H(H_) {
@@ -959,7 +960,6 @@ public:
 };
 
 class Greet : public Scene {
-
     size_t W = 0;
     size_t H = 0;
     const uint8_t pixelWidth = Settings::getInstance().pixel_size();
@@ -970,21 +970,21 @@ class Greet : public Scene {
     int16_t x = 0;
 
 public:
-    friend std::ostream & operator<<(std::ostream &os, const Greet &obj) {
+    friend std::ostream &operator<<(std::ostream &os, const Greet &obj) {
         os << "This is the Greet class: "
-               << static_cast<const Scene &>(obj)
-               << " W: " << obj.W
-               << " H: " << obj.H
-               << " pixelWidth: " << obj.pixelWidth
-               << " textSize: " << obj.textSize
-               << " matrix: " << obj.matrix
-               << " greeting: " << obj.greeting
-               << " x: " << obj.x;
+                << static_cast<const Scene &>(obj)
+                << " W: " << obj.W
+                << " H: " << obj.H
+                << " pixelWidth: " << obj.pixelWidth
+                << " textSize: " << obj.textSize
+                << " matrix: " << obj.matrix
+                << " greeting: " << obj.greeting
+                << " x: " << obj.x;
         return os;
     }
+
     explicit Greet(sf::RenderWindow *window_, const std::string &s)
-        : Scene(window_)
-    {
+        : Scene(window_) {
         textSize = s.size();
         W = window->getSize().x;
         H = window->getSize().y;
@@ -999,12 +999,16 @@ public:
             }
         }
 
-        matrix = ReadOnlyText{window, backgroundText, 0, 0, pixelWidth, W, H, Settings::getInstance().text_color(), Settings::getInstance().background_color()};
+        matrix = ReadOnlyText{
+            window, backgroundText, 0, 0, pixelWidth, W, H, Settings::getInstance().text_color(),
+            Settings::getInstance().background_color()
+        };
         greeting = ReadOnlyText{
             window,
             s,
             static_cast<int16_t>(W), 0, static_cast<uint8_t>(pixelWidth * 9),
-            9 * 9 * pixelWidth * textSize, static_cast<size_t>(9 * 8 * pixelWidth), Settings::getInstance().text_color(),
+            9 * 9 * pixelWidth * textSize, static_cast<size_t>(9 * 8 * pixelWidth),
+            Settings::getInstance().text_color(),
             sf::Color::Transparent,
             false
         };
@@ -1032,10 +1036,10 @@ public:
         greeting.moveAt(x, 0);
     }
 
-    void update() override {}
+    void update() override {
+    }
 
     void refresh() override {
-
     }
 
     ~Greet() override = default;
@@ -1043,7 +1047,6 @@ public:
 
 
 class TilePanel : public Scene, VertexArrayUtility {
-
     sf::RenderWindow *window = nullptr;
     std::string titleText;
     const uint8_t target;
@@ -1172,29 +1175,29 @@ class TilePanel : public Scene, VertexArrayUtility {
     }
 
 public:
-
-    friend std::ostream & operator<<(std::ostream &os, const TilePanel &obj) {
+    friend std::ostream &operator<<(std::ostream &os, const TilePanel &obj) {
         os << "This is the TilePanel class: "
-               << static_cast<const Scene &>(obj)
-               << ' ' << static_cast<const VertexArrayUtility &>(obj)
-               << " window: " << obj.window
-               << " titleText: " << obj.titleText
-               << " target: " << obj.target
-               << " titleObject: " << obj.titleObject
-               << " cursorX: " << obj.cursorX
-               << " cursorY: " << obj.cursorY
-               << " x: " << obj.x
-               << " y: " << obj.y
-               << " cellW: " << obj.cellW
-               << " cellH: " << obj.cellH
-               << " columns: " << obj.columns
-               << " rows: " << obj.rows
-               << " colors: " << obj.colors.size()
-               << " backgroundVertexArray: " << obj.backgroundVertexArray.getVertexCount()
-               << " tableVertexArray: " << obj.tableVertexArray.getVertexCount()
-               << " cursorVertexArray: " << obj.cursorVertexArray.getVertexCount();
+                << static_cast<const Scene &>(obj)
+                << ' ' << static_cast<const VertexArrayUtility &>(obj)
+                << " window: " << obj.window
+                << " titleText: " << obj.titleText
+                << " target: " << obj.target
+                << " titleObject: " << obj.titleObject
+                << " cursorX: " << obj.cursorX
+                << " cursorY: " << obj.cursorY
+                << " x: " << obj.x
+                << " y: " << obj.y
+                << " cellW: " << obj.cellW
+                << " cellH: " << obj.cellH
+                << " columns: " << obj.columns
+                << " rows: " << obj.rows
+                << " colors: " << obj.colors.size()
+                << " backgroundVertexArray: " << obj.backgroundVertexArray.getVertexCount()
+                << " tableVertexArray: " << obj.tableVertexArray.getVertexCount()
+                << " cursorVertexArray: " << obj.cursorVertexArray.getVertexCount();
         return os;
     }
+
     TilePanel(sf::RenderWindow *window_,
               std::string title_,
               const uint8_t target_)
@@ -1300,7 +1303,8 @@ public:
         }
     }
 
-    void update() override {}
+    void update() override {
+    }
 
     void draw() override {
         window->draw(backgroundVertexArray);
@@ -1320,7 +1324,6 @@ public:
 };
 
 class Menu : public Scene, VertexArrayUtility {
-
     sf::RenderWindow *window = nullptr;
     ReadOnlyText text;
     std::vector<SceneID> actions;
@@ -1361,20 +1364,21 @@ class Menu : public Scene, VertexArrayUtility {
     }
 
 public:
-    friend std::ostream & operator<<(std::ostream &os, const Menu &obj) {
+    friend std::ostream &operator<<(std::ostream &os, const Menu &obj) {
         os << "This is the Menu class: "
-               << static_cast<const Scene &>(obj)
-               << ' ' << static_cast<const VertexArrayUtility &>(obj)
-               << " window: " << obj.window
-               << " text: " << obj.text
-               << " actions: " << obj.actions.size()
-               << " cursor: " << obj.cursor
-               << " backgroundAndCursorVertexArray: " << obj.backgroundAndCursorVertexArray.getVertexCount()
-               << " len: " << obj.len
-               << " lineHeight: " << obj.lineHeight
-               << " parameters: " << obj.parameters;
+                << static_cast<const Scene &>(obj)
+                << ' ' << static_cast<const VertexArrayUtility &>(obj)
+                << " window: " << obj.window
+                << " text: " << obj.text
+                << " actions: " << obj.actions.size()
+                << " cursor: " << obj.cursor
+                << " backgroundAndCursorVertexArray: " << obj.backgroundAndCursorVertexArray.getVertexCount()
+                << " len: " << obj.len
+                << " lineHeight: " << obj.lineHeight
+                << " parameters: " << obj.parameters;
         return os;
     }
+
     Menu(sf::RenderWindow *window_, const std::string &menuText, const std::vector<SceneID> &actions_,
          const SceneID parentID_ = SceneID::Exit)
         : Scene(window_),
@@ -1442,7 +1446,8 @@ public:
         }
     }
 
-    void update() override {}
+    void update() override {
+    }
 
     void draw() override {
         window->draw(backgroundAndCursorVertexArray);
@@ -1460,7 +1465,6 @@ public:
 };
 
 class SceneManager {
-
     sf::RenderWindow *window;
     sf::Vector2u formerWindowSize;
     sf::Vector2i formerWindowPos;
@@ -1480,22 +1484,29 @@ class SceneManager {
     std::unique_ptr<Scene> aiMode;
     std::unique_ptr<Scene> editor;
 
-    Scene* currentScene = nullptr;
+    Button increaseButton;
+    Button decreaseButton;
+    Button restoreButton;
+
+    Scene *currentScene = nullptr;
 
     [[nodiscard]] Scene *resolve(const SceneID id) const {
-        static Button increaseButton(window, []() {
-            Settings::getInstance().increase_pixel_size();
-            Settings::getInstance().update();
-        }, SceneID::PixelSizeSettings);
-
-        static Button decreaseButton(window, []() {
-            Settings::getInstance().decrease_pixel_size();
-            Settings::getInstance().update();
-        }, SceneID::PixelSizeSettings);
-
-        static Button restoreButton(window, []() {
-            Settings::getInstance().update(true);
-        }, SceneID::SettingsMenu);
+        // static Button increaseButton(window, []() {
+        //     Settings::getInstance().increase_pixel_size();
+        //     Settings::getInstance().update();
+        // }, SceneID::PixelSizeSettings);
+        //
+        // static Button decreaseButton(window, []() {
+        //     Settings::getInstance().decrease_pixel_size();
+        //     Settings::getInstance().update();
+        // }, SceneID::PixelSizeSettings);
+        //
+        // static Button restoreButton(window, []() {
+        //     Settings::getInstance().update(true);
+        // }, SceneID::SettingsMenu);
+        //
+        // std::cout << "These are the buttons: "
+        //  <<increaseButton << decreaseButton << restoreButton;
 
         switch (id) {
             case SceneID::MainMenu: return mainMenu.get();
@@ -1506,9 +1517,10 @@ class SceneManager {
             case SceneID::CursorSettings: return cursorSettings.get();
 
             case SceneID::PixelSizeSettings: return pixelSizeSettings.get();
-            case SceneID::RestoreDefaults: return &restoreButton;
-            case SceneID::Increase: return &increaseButton;
-            case SceneID::Decrease: return &decreaseButton;
+
+            case SceneID::RestoreDefaults: return const_cast<Button *>(&restoreButton);
+            case SceneID::Increase: return const_cast<Button *>(&increaseButton);
+            case SceneID::Decrease: return const_cast<Button *>(&decreaseButton);
 
             case SceneID::NewFile: return newFile.get();
             case SceneID::OpenFromDisk: return openFromDisk.get();
@@ -1582,26 +1594,58 @@ class SceneManager {
     }
 
 public:
-    friend std::ostream & operator<<(std::ostream &os, const SceneManager &obj) {
-        os << "This is the SceneManager class: "
-               << "window: " << obj.window
-               << " originalWindowSize: " << obj.formerWindowSize.x << ", " << obj.formerWindowSize.y
-               << " isGreetMode: " << obj.isGreetMode
-               << " mainMenu: " << obj.mainMenu
-               << " settingsMenu: " << obj.settingsMenu
-               << " backgroundSettings: " << obj.backgroundSettings
-               << " textSettings: " << obj.textSettings
-               << " cursorSettings: " << obj.cursorSettings
-               << " pixelSizeSettings: " << obj.pixelSizeSettings
-               << " newFile: " << obj.newFile
-               << " openFromDisk: " << obj.openFromDisk
-               << " aiMode: " << obj.aiMode
-               << " editor: " << obj.editor
-               << " currentScene: " << obj.currentScene;
+    friend std::ostream &operator<<(std::ostream &os, const SceneManager &obj) {
+        os << "\n---------------------------------------------------------------------------------------"
+                << "\nThis is the SceneManager class: "
+                << "\n---------------------------------------------------------------------------------------"
+                << "\nwindow: " << obj.window
+                << "\n---------------------------------------------------------------------------------------"
+                << "\noriginalWindowSize: " << obj.formerWindowSize.x << ", " << obj.formerWindowSize.y
+                << "\n---------------------------------------------------------------------------------------"
+                << "\nisGreetMode: " << obj.isGreetMode
+                << "\n---------------------------------------------------------------------------------------"
+                << "\nmainMenu: " << dynamic_cast<const Menu &>(*obj.mainMenu)
+                << "\n---------------------------------------------------------------------------------------"
+                << "\nsettingsMenu: " << dynamic_cast<const Menu &>(*obj.settingsMenu)
+                << "\n---------------------------------------------------------------------------------------"
+                << "\nbackgroundSettings: " << dynamic_cast<const TilePanel &>(*obj.backgroundSettings)
+                << "\n---------------------------------------------------------------------------------------"
+                << "\ntextSettings: " << dynamic_cast<const TilePanel &>(*obj.textSettings)
+                << "\n---------------------------------------------------------------------------------------"
+                << "\ncursorSettings: " << dynamic_cast<const TilePanel &>(*obj.cursorSettings)
+                << "\n---------------------------------------------------------------------------------------"
+                << "\npixelSizeSettings: " << dynamic_cast<const Menu &>(*obj.pixelSizeSettings)
+                << "\n---------------------------------------------------------------------------------------"
+                << "\nnewFile: " << dynamic_cast<const Greet &>(*obj.newFile)
+                << "\n---------------------------------------------------------------------------------------"
+                << "\nopenFromDisk: " << dynamic_cast<const Greet &>(*obj.openFromDisk)
+                << "\n---------------------------------------------------------------------------------------"
+                << "\naiMode: " << dynamic_cast<const Greet &>(*obj.aiMode)
+                << "\n---------------------------------------------------------------------------------------"
+                << "\neditor: " << dynamic_cast<const EditableText &>(*obj.editor)
+                << "\n---------------------------------------------------------------------------------------"
+                << "\ncurrentScene: " << *obj.currentScene
+                << "\n---------------------------------------------------------------------------------------"
+                << "\nincreaseButton: " << obj.increaseButton
+                << "\n---------------------------------------------------------------------------------------"
+                << "\ndecreaseButton: " << obj.decreaseButton
+                << "\n---------------------------------------------------------------------------------------"
+                << "\nrestoreButton: " << obj.restoreButton
+                << "\n---------------------------------------------------------------------------------------";
         return os;
     }
+
     explicit SceneManager(sf::RenderWindow *window_)
-    : window(window_) {
+        : window(window_),
+          increaseButton(window_, []() {
+              Settings::getInstance().increase_pixel_size();
+              Settings::getInstance().update();
+          }, SceneID::PixelSizeSettings),
+          decreaseButton(window_, []() {
+              Settings::getInstance().decrease_pixel_size();
+              Settings::getInstance().update();
+          }, SceneID::PixelSizeSettings),
+          restoreButton(window_, []() { Settings::getInstance().update(true); }, SceneID::SettingsMenu) {
         createScenes();
         currentScene = mainMenu.get();
     }
@@ -1619,7 +1663,6 @@ public:
                     // update the view to the new size of the window
                     sf::FloatRect visibleArea({0.f, 0.f}, sf::Vector2f(resized->size));
                     window->setView(sf::View(visibleArea));
-
                 }
                 currentScene->manageEvent(*e);
             }
@@ -1635,8 +1678,8 @@ public:
                 currentScene->reset();
 
                 const bool nextIsGreet = (next == SceneID::NewFile ||
-                                    next == SceneID::OpenFromDisk ||
-                                    next == SceneID::AIMode);
+                                          next == SceneID::OpenFromDisk ||
+                                          next == SceneID::AIMode);
 
                 if (nextIsGreet && !isGreetMode) {
                     window->setFramerateLimit(20);
@@ -1668,7 +1711,7 @@ public:
                     isGreetMode = false;
                 }
 
-                Scene* nextPtr = resolve(next);
+                Scene *nextPtr = resolve(next);
                 if (!nextPtr) return;
 
                 currentScene = nextPtr;
@@ -1688,7 +1731,8 @@ int main() {
     SceneManager sm(&window);
 
     // compunerea cu operator<< se vede in clasa SceneManager, care afiseaza mai multe obiecte
-    std::cout << "Afisare: " << sm << "\nwindow width: " << window.getSize().x <<  ", window height: " << window.getSize().y << '\n';
+    std::cout << "Afisare: " << sm << "\nwindow width: " << window.getSize().x << ", window height: " << window.
+            getSize().y << '\n';
 
     sm.run();
 
