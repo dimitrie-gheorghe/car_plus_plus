@@ -4,6 +4,8 @@
 #include <iostream>
 #include <fstream>
 #include <ostream>
+#include <string>
+#include <vector>
 
 #include <SFML/Graphics.hpp>
 #include <utility>
@@ -12,6 +14,8 @@ class VertexArrayUtility {
     uint8_t ascii[8 * 95]{};
 
 public:
+    virtual ~VertexArrayUtility() = default;
+
     friend std::ostream &operator<<(std::ostream &os, const VertexArrayUtility &obj) {
         os << obj.ascii[0];
         return os;
