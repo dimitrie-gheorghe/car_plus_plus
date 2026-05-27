@@ -105,7 +105,7 @@ endif()
 
 copy_files(FILES tastatura.txt ./assets/font.txt ./assets/tilePanelData.txt DIRECTORY assets COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
 copy_files(
-        FILES config/settings.txt
+        FILES ./config/settings.txt ./config/menu_eng.txt ./config/scene_mappings.txt
         DIRECTORY config
         COPY_TO_DESTINATION
         TARGET_NAME ${MAIN_EXECUTABLE_NAME}

@@ -1,0 +1,29 @@
+# Configuration for app navigation menus
+# Format: Item: [Visible Menu Label] -> [Target SceneID ID]
+
+[Menu]
+ID: MainMenu
+Return: Exit
+Title: MAIN MENU - ESC to quit
+Item: settings -> SettingsMenu
+Item: new file -> NewFile
+Item: open from disk -> OpenFromDisk
+Item: AI mode -> AIMode
+Item: demo text editor -> DemoTextEditor
+
+[Menu]
+ID: SettingsMenu
+Return: MainMenu
+Title: SETTINGS MENU - ESC to go back
+Item: background color -> BackgroundSettings
+Item: text color -> TextSettings
+Item: cursor color -> CursorSettings
+Item: pixel size -> PixelSizeSettings
+Item: restore defaults -> RestoreDefaults
+
+[Menu]
+ID: PixelSizeSettings
+Return: SettingsMenu
+Title: PIXEL SIZE SETTER - ESC to go back
+Item: increase -> Increase
+Item: decrease -> Decrease

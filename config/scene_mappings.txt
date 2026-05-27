@@ -1,0 +1,14 @@
+MainMenu 0
+SettingsMenu 1
+BackgroundSettings 2
+TextSettings 3
+CursorSettings 4
+PixelSizeSettings 5
+RestoreDefaults 6
+Increase 7
+Decrease 8
+NewFile 9
+OpenFromDisk 10
+AIMode 11
+DemoTextEditor 12
+Exit 13
