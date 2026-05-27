@@ -12,6 +12,7 @@
 
 class FontManager {
     uint8_t ascii[8 * 95]{};
+
     FontManager() {
         std::ifstream input("./assets/font.txt");
         int x;
@@ -21,20 +22,21 @@ class FontManager {
         }
         input.close();
     }
+
 public:
-    static const FontManager& getInstance() {
+    static const FontManager &getInstance() {
         static FontManager instance;
         return instance;
     }
-    uint8_t getByte(const size_t index) const {
+
+    [[nodiscard]] uint8_t getByte(const size_t index) const {
         return ascii[index];
     }
 };
 
 namespace VertexArrayUtility {
-
-    static void insertRectangle(sf::VertexArray &v, const int16_t x, const int16_t y, const int16_t w,
-                                const int16_t h, const sf::Color color) {
+    void insertRectangle(sf::VertexArray &v, const int16_t x, const int16_t y, const int16_t w,
+                         const int16_t h, const sf::Color color) {
         v.append({{static_cast<float>(x), static_cast<float>(y)}, color, {0.0f, 0.0f}});
 
         v.append({{static_cast<float>(x + w), static_cast<float>(y)}, color, {0.0f, 0.0f}});
@@ -46,7 +48,7 @@ namespace VertexArrayUtility {
         v.append({{static_cast<float>(x + w), static_cast<float>(y + h)}, color, {0.0f, 0.0f}});
     }
 
-    static void moveAt(sf::VertexArray &v, const int16_t newX, const int16_t newY) {
+    void moveAt(sf::VertexArray &v, const int16_t newX, const int16_t newY) {
         if (const size_t len = v.getVertexCount()) {
             const float stepX = static_cast<float>(newX) - v[0].position.x;
             const float stepY = static_cast<float>(newY) - v[0].position.y;
@@ -57,7 +59,7 @@ namespace VertexArrayUtility {
         }
     }
 
-    static void insertChar(sf::VertexArray &v, const char c, const int16_t x, const int16_t y, const int16_t pixelSize,
+    void insertChar(sf::VertexArray &v, const char c, const int16_t x, const int16_t y, const int16_t pixelSize,
                     const sf::Color color) {
         v.setPrimitiveType(sf::PrimitiveType::Triangles);
 
@@ -82,7 +84,7 @@ namespace VertexArrayUtility {
             }
         }
     }
-};
+}
 
 class Settings {
     int16_t windowW = 800;
@@ -270,75 +272,53 @@ enum class SceneID {
 };
 
 class Scene {
-    sf::VertexArray background;
-    void updateBackground() {
-        background.clear();
-        VertexArrayUtility::insertRectangle(background, 0, 0, window->getSize().x, window->getSize().y, Settings::getInstance().background_color());
+    virtual void manageEvent() = 0;
 
-    }
+    virtual void reset() = 0;
 
-    virtual void draw() = 0;
-    virtual void refresh() {}
-    virtual void reset() {
-        requestExit = false;
-        nextScene = SceneID::Exit;
-    }
+    bool requestExit = false;
+    SceneID sceneToReturnAt = SceneID::Exit;
+    const SceneID defaultSceneToReturnAt = SceneID::Exit;
 
 protected:
-
-    SceneID nextScene = SceneID::Exit;
-    bool requestExit = false;
     sf::RenderWindow *window = nullptr;
     std::optional<sf::Event> event;
 
 public:
-    virtual std::ostream& print(std::ostream& os) const {
+    virtual std::ostream &print(std::ostream &os) const {
         os << "Scene: window=" << window << ", requestExit=" << requestExit << " ";
         return os;
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const Scene& obj) {
+    friend std::ostream &operator<<(std::ostream &os, const Scene &obj) {
         return obj.print(os);
     }
 
-    explicit Scene(sf::RenderWindow *w) : window(w) {
-        background.setPrimitiveType(sf::PrimitiveType::Triangles);
-        updateBackground();
-    }
+    explicit Scene(sf::RenderWindow *w, const SceneID sceneToReturnAt_) : sceneToReturnAt(sceneToReturnAt_), defaultSceneToReturnAt(sceneToReturnAt_), window(w) {}
 
     virtual ~Scene() = default;
 
-    virtual void manageEvent() = 0;
+    virtual void draw() = 0;
 
-    void drawBackend() {
-        window->draw(background);
-        draw();
-    }
+    virtual void begin() = 0;
 
-    void refreshBackend() {
-        updateBackground();
-        refresh();
-    }
-
-    void resetBackEnd() {
-        updateBackground();
+    void end() {
+        requestExit = false;
+        sceneToReturnAt = defaultSceneToReturnAt;
         reset();
     }
 
     void manageEvent(const sf::Event &e) {
         event = e;
-        if (event->getIf<sf::Event::Resized>()) {
-            updateBackground();
-        }
         manageEvent();
     }
 
-    void setNextScene(const SceneID id) {
-        nextScene = id;
+    void setSceneToReturnAt(const SceneID id) {
+        sceneToReturnAt = id;
     }
 
-    [[nodiscard]] SceneID getNextScene() const {
-        return nextScene;
+    [[nodiscard]] SceneID getSceneToReturnAt() const {
+        return sceneToReturnAt;
     }
 
     [[nodiscard]] bool hasFinished() const {
@@ -352,10 +332,18 @@ public:
 
 class Button : public Scene {
     std::function<void()> action;
-    SceneID sceneToReturnAt;
+
+    void reset() override {}
+
+    void manageEvent() override {}
 
 public:
-    std::ostream& print(std::ostream& os) const override {
+    void begin() override {
+        action();
+        exit();
+    }
+
+    std::ostream &print(std::ostream &os) const override {
         Scene::print(os);
         os << "Buttons don't have much data... : ";
         return os;
@@ -366,18 +354,11 @@ public:
         return os;
     }
 
-    Button(sf::RenderWindow *window, std::function<void()> func, const SceneID returnScene)
-        : Scene(window), action(std::move(func)), sceneToReturnAt(returnScene) {
+    Button(sf::RenderWindow *window, std::function<void()> func, const SceneID sceneToReturnAt_)
+        : Scene(window, sceneToReturnAt_), action(std::move(func)) {
     }
 
-    void manageEvent() override {
-        action();
-        setNextScene(sceneToReturnAt);
-        exit();
-    }
-
-    void draw() override {
-    }
+    void draw() override {}
 };
 
 class ReadOnlyText {
@@ -542,11 +523,12 @@ public:
 
     explicit ReadOnlyText(sf::RenderTarget *target_, std::string text_, const int16_t x_, const int16_t y_,
                           const uint8_t pixelSize_,
-                          const size_t W_, const size_t H_, const sf::Color color_, const bool lineWrappable_ = true) : target(target_),
-        text(std::move(text_)),
-        x(x_), y(y_),
-        pixelSize(pixelSize_), W(W_), H(H_),
-        textColor(color_), lineWrappable(lineWrappable_) {
+                          const size_t W_, const size_t H_, const sf::Color color_,
+                          const bool lineWrappable_ = true) : target(target_),
+                                                              text(std::move(text_)),
+                                                              x(x_), y(y_),
+                                                              pixelSize(pixelSize_), W(W_), H(H_),
+                                                              textColor(color_), lineWrappable(lineWrappable_) {
         updateVertexArray();
     }
 
@@ -668,15 +650,16 @@ class EditableText : public Scene {
             for (size_t c = x; c <= rightLimit && visibleTextL < visibleTextR; c += charPoz) {
                 if (formattedCursorL <= visibleTextL && visibleTextL <= formattedCursorR) {
                     VertexArrayUtility::insertRectangle(textVertexArray, static_cast<int16_t>(c),
-                                    static_cast<int16_t>(r),
-                                    static_cast<int16_t>(Settings::getInstance().pixel_size() * 9),
-                                    static_cast<int16_t>(Settings::getInstance().pixel_size() * 9),
-                                    Settings::getInstance().cursor_color());
+                                                        static_cast<int16_t>(r),
+                                                        static_cast<int16_t>(Settings::getInstance().pixel_size() * 9),
+                                                        static_cast<int16_t>(Settings::getInstance().pixel_size() * 9),
+                                                        Settings::getInstance().cursor_color());
                 }
                 if ('!' <= formattedText[visibleTextL] && formattedText[visibleTextL] <= '~') {
                     VertexArrayUtility::insertChar(textVertexArray, formattedText[visibleTextL],
-                               static_cast<int16_t>(c), static_cast<int16_t>(r), Settings::getInstance().pixel_size(),
-                               Settings::getInstance().text_color());
+                                                   static_cast<int16_t>(c), static_cast<int16_t>(r),
+                                                   Settings::getInstance().pixel_size(),
+                                                   Settings::getInstance().text_color());
                 }
                 visibleTextL++;
             }
@@ -845,7 +828,7 @@ class EditableText : public Scene {
             } else if (k == sf::Keyboard::Scancode::S) {
                 // Save and return to Main Menu
                 // save(); // I will implement it latter
-                setNextScene(SceneID::MainMenu);
+                setSceneToReturnAt(SceneID::MainMenu);
                 exit();
             }
         }
@@ -857,9 +840,55 @@ class EditableText : public Scene {
     // void save() {
     //   to be completed
     // }
+    void reset() override {
+    }
+
+    void manageEvent() override {
+        if (!event) return;
+
+        if (const auto *enteredText = event->getIf<sf::Event::TextEntered>()) {
+            if (const char c = static_cast<char>(enteredText->unicode); c == 8) {
+                // Backspace
+                if (!text.empty()) {
+                    if (cursorL == cursorR && cursorL > 0) {
+                        text.erase(--cursorL, 1);
+                        cursorR = cursorL;
+                    } else {
+                        deleteSelectedText();
+                    }
+                }
+            } else if ((c >= 32 && c < 127) || c == '\n' || c == '\t') {
+                deleteSelectedText();
+                text.insert(cursorR++, 1, c);
+                cursorL = cursorR;
+            }
+            updateVertexArray();
+        } else if (event->getIf<sf::Event::Resized>()) {
+            // reflow the text
+            updateVertexArray();
+        } else if (const auto *key = event->getIf<sf::Event::KeyPressed>()) {
+            if (key->scancode == sf::Keyboard::Scancode::Escape) {
+                setSceneToReturnAt(SceneID::MainMenu);
+                exit();
+                return;
+            }
+            if (key->scancode == sf::Keyboard::Scancode::LControl || key->scancode == sf::Keyboard::Scancode::RControl)
+                ctrl = true;
+            if (key->scancode == sf::Keyboard::Scancode::LShift || key->scancode == sf::Keyboard::Scancode::RShift)
+                shift = true;
+
+            manageKey(key->scancode);
+            updateVertexArray();
+        } else if (const auto *k = event->getIf<sf::Event::KeyReleased>()) {
+            if (k->scancode == sf::Keyboard::Scancode::LControl || k->scancode == sf::Keyboard::Scancode::RControl)
+                ctrl = false;
+            if (k->scancode == sf::Keyboard::Scancode::LShift || k->scancode == sf::Keyboard::Scancode::RShift)
+                shift = false;
+        }
+    }
 
 public:
-    std::ostream& print(std::ostream& os) const override {
+    std::ostream &print(std::ostream &os) const override {
         Scene::print(os);
         os << "This is the EditableText class: "
                 << " text: " << text
@@ -896,76 +925,66 @@ public:
     }
 
     explicit EditableText(sf::RenderWindow *window_, std::string text_, const int16_t x_, const int16_t y_,
-                          const size_t W_, const size_t H_)
-        : Scene(window_), text(std::move(text_)), x(x_), y(y_), W(W_), H(H_) {
+                          const size_t W_, const size_t H_, const SceneID sceneToReturnAt_)
+        : Scene(window_, sceneToReturnAt_), text(std::move(text_)), x(x_), y(y_), W(W_), H(H_) {
         updateVertexArray();
-    }
-
-    void manageEvent() override {
-        if (!event) return;
-
-        if (const auto *enteredText = event->getIf<sf::Event::TextEntered>()) {
-            if (const char c = static_cast<char>(enteredText->unicode); c == 8) {
-                // Backspace
-                if (!text.empty()) {
-                    if (cursorL == cursorR && cursorL > 0) {
-                        text.erase(--cursorL, 1);
-                        cursorR = cursorL;
-                    } else {
-                        deleteSelectedText();
-                    }
-                }
-            } else if ((c >= 32 && c < 127) || c == '\n' || c == '\t') {
-                deleteSelectedText();
-                text.insert(cursorR++, 1, c);
-                cursorL = cursorR;
-            }
-            updateVertexArray();
-        } else if (event->getIf<sf::Event::Resized>()) {
-            // reflow the text
-            updateVertexArray();
-        } else if (const auto *key = event->getIf<sf::Event::KeyPressed>()) {
-            if (key->scancode == sf::Keyboard::Scancode::Escape) {
-                setNextScene(SceneID::MainMenu);
-                exit();
-                return;
-            }
-            if (key->scancode == sf::Keyboard::Scancode::LControl || key->scancode == sf::Keyboard::Scancode::RControl)
-                ctrl = true;
-            if (key->scancode == sf::Keyboard::Scancode::LShift || key->scancode == sf::Keyboard::Scancode::RShift)
-                shift = true;
-
-            manageKey(key->scancode);
-            updateVertexArray();
-        } else if (const auto *k = event->getIf<sf::Event::KeyReleased>()) {
-            if (k->scancode == sf::Keyboard::Scancode::LControl || k->scancode == sf::Keyboard::Scancode::RControl)
-                ctrl = false;
-            if (k->scancode == sf::Keyboard::Scancode::LShift || k->scancode == sf::Keyboard::Scancode::RShift)
-                shift = false;
-        }
     }
 
     void draw() override {
         window->draw(textVertexArray);
     }
 
-    void refresh() override {
+    void begin() override {
         updateVertexArray();
     }
 };
 
 class Greet : public Scene {
-    size_t W = 0;
-    size_t H = 0;
-    const uint8_t pixelWidth = Settings::getInstance().pixel_size();
+    sf::Vector2i formerPos;
+    unsigned int formerWindowW = 0;
+    unsigned int formerWindowH = 0;
+
+    uint8_t pixelWidth = 3;
+    const size_t W = pixelWidth * 9 * 8 * 3;
+    const size_t H = pixelWidth * 9 * 8;
     size_t textSize = 0;
 
     ReadOnlyText matrix;
     ReadOnlyText greeting;
     int16_t x = 0;
 
+    void setProperties() {
+        formerWindowW = window->getSize().x;
+        formerWindowH = window->getSize().y;
+        formerPos = window->getPosition();
+
+        sf::Vector2i desiredPos;
+        desiredPos.x = static_cast<int>(formerPos.x + (window->getSize().x - W) / 2);
+        desiredPos.y = static_cast<int>(formerPos.y + (window->getSize().y - H) / 2);
+
+        window->create(sf::VideoMode({static_cast<unsigned int>(W), static_cast<unsigned int>(H)}),
+                       "", sf::Style::None, sf::State::Windowed);
+        window->setPosition(desiredPos);
+        window->setFramerateLimit(20);
+    }
+
+    void resetProperties() {
+        window->create(sf::VideoMode({formerWindowW, formerWindowH}), "car_plus_plus", sf::Style::Default,
+                       sf::State::Windowed);
+        window->setFramerateLimit(10);
+    }
+
+    void reset() override {
+        x = static_cast<int16_t>(W);
+        greeting.moveAt(x, 0);
+        resetProperties();
+    }
+
+    void manageEvent() override {
+    }
+
 public:
-    std::ostream& print(std::ostream& os) const override {
+    std::ostream &print(std::ostream &os) const override {
         Scene::print(os);
 
         os << "This is the Greet class: "
@@ -978,6 +997,7 @@ public:
                 << " x: " << x;
         return os;
     }
+
     friend std::ostream &operator<<(std::ostream &os, const Greet &obj) {
         os << "This is the Greet class: "
                 << static_cast<const Scene &>(obj)
@@ -991,11 +1011,9 @@ public:
         return os;
     }
 
-    explicit Greet(sf::RenderWindow *window_, const std::string &s)
-        : Scene(window_) {
+    explicit Greet(sf::RenderWindow *window_, const std::string &s, const SceneID sceneToReturnAt_)
+        : Scene(window_, sceneToReturnAt_) {
         textSize = s.size();
-        W = window->getSize().x;
-        H = window->getSize().y;
 
         std::string backgroundText;
         constexpr uint8_t backgroundTextLen = 8 * 8 * 3;
@@ -1023,26 +1041,18 @@ public:
     }
 
     void draw() override {
+        if (x < -static_cast<int16_t>(9 * 8 * pixelWidth * textSize)) {
+            resetProperties();
+            exit();
+        }
         matrix.draw();
         greeting.draw();
         x = static_cast<int16_t>(x - 9 * pixelWidth);
         greeting.moveAt(x, 0);
     }
 
-    void manageEvent() override {
-        if (x < -static_cast<int16_t>(9 * 8 * pixelWidth * textSize)) {
-            setNextScene(SceneID::MainMenu);
-            exit();
-        }
-    }
-
-    void reset() override {
-        resetBackEnd();
-        x = static_cast<int16_t>(W);
-        greeting.moveAt(x, 0);
-    }
-
-    void refresh() override {
+    void begin() override {
+        setProperties();
     }
 
     ~Greet() override = default;
@@ -1132,13 +1142,14 @@ class TilePanel : public Scene {
         cursorVertexArray.setPrimitiveType(sf::PrimitiveType::Triangles);
         // horizontal lines
         for (int i = 0; i <= 1; i++) {
-            VertexArrayUtility::insertRectangle(cursorVertexArray, x, static_cast<int16_t>(y + cellH * i), static_cast<int16_t>(cellW + 10),
-                            10, Settings::getInstance().cursor_color());
+            VertexArrayUtility::insertRectangle(cursorVertexArray, x, static_cast<int16_t>(y + cellH * i),
+                                                static_cast<int16_t>(cellW + 10),
+                                                10, Settings::getInstance().cursor_color());
         }
         // vertical lines
         for (int i = 0; i <= 1; i++) {
             VertexArrayUtility::insertRectangle(cursorVertexArray, static_cast<int16_t>(x + cellW * i), y, 10, cellH,
-                            Settings::getInstance().cursor_color());
+                                                Settings::getInstance().cursor_color());
         }
     }
 
@@ -1154,13 +1165,88 @@ class TilePanel : public Scene {
         );
     }
 
+    void reset() override {
+        cursorX = 0;
+        cursorY = 0;
+    }
+
+    void manageEvent() override {
+        if (!event) {
+            return;
+        }
+        if (event->is<sf::Event::Resized>()) {
+            manageResizedEvent();
+            return;
+        }
+        if (const auto *key = event->getIf<sf::Event::KeyPressed>()) {
+            switch (key->scancode) {
+                case sf::Keyboard::Scancode::Right:
+                    cursorX++;
+                    break;
+                case sf::Keyboard::Scancode::Left:
+                    cursorX--;
+                    break;
+                case sf::Keyboard::Scancode::Up:
+                    cursorY--;
+                    break;
+                case sf::Keyboard::Scancode::Down:
+                    cursorY++;
+                    break;
+                case sf::Keyboard::Scancode::Enter: {
+                    if (const sf::Color newColor = colors[cursorX + cursorY * columns];
+                        newColor != Settings::getInstance().background_color() &&
+                        newColor != Settings::getInstance().text_color() &&
+                        newColor != Settings::getInstance().cursor_color()) {
+                        if (target == 0) {
+                            Settings::getInstance().set_background_color(newColor);
+                        }
+                        if (target == 1) {
+                            Settings::getInstance().set_text_color(newColor);
+                        }
+                        if (target == 2) {
+                            Settings::getInstance().set_cursor_color(newColor);
+                        }
+                        Settings::getInstance().update();
+                    }
+
+                    setSceneToReturnAt(SceneID::SettingsMenu);
+                    exit();
+                    return;
+                }
+
+                case sf::Keyboard::Scancode::Escape:
+                    setSceneToReturnAt(SceneID::SettingsMenu);
+                    exit();
+                    return;
+
+                default:
+                    break;
+            }
+
+            // repair overflow/underflow moves
+            if (cursorX < 0) {
+                cursorX = 0;
+            }
+            if (cursorY < 0) {
+                cursorY = 0;
+            }
+            if (cursorX >= columns) {
+                cursorX = static_cast<int8_t>(columns - 1);
+            }
+            if (cursorY >= rows) {
+                cursorY = static_cast<int8_t>(rows - 1);
+            }
+            updateCursor();
+        }
+    }
+
 public:
-    std::ostream& print(std::ostream& os) const override {
+    std::ostream &print(std::ostream &os) const override {
         Scene::print(os);
 
         os << "This is the TilePanel class: "
                 << " window: " << window
-                << " titleText: " <<titleText
+                << " titleText: " << titleText
                 << " target: " << target
                 << " titleObject: " << titleObject
                 << " cursorX: " << cursorX
@@ -1176,6 +1262,7 @@ public:
                 << " cursorVertexArray: " << cursorVertexArray.getVertexCount();
         return os;
     }
+
     friend std::ostream &operator<<(std::ostream &os, const TilePanel &obj) {
         os << "This is the TilePanel class: "
                 << static_cast<const Scene &>(obj)
@@ -1197,10 +1284,8 @@ public:
         return os;
     }
 
-    TilePanel(sf::RenderWindow *window_,
-              std::string title_,
-              const uint8_t target_)
-        : Scene(window_),
+    TilePanel(sf::RenderWindow *window_, std::string title_, const uint8_t target_, const SceneID sceneToReturnAt_)
+        : Scene(window_, sceneToReturnAt_),
           window(window_),
           titleText(std::move(title_)),
           target(target_) {
@@ -1217,87 +1302,12 @@ public:
         createTilePanel();
     }
 
-    void refresh() override {
+    void begin() override {
         titleObject.setTextColor(Settings::getInstance().text_color());
         titleObject.setPixelSize(static_cast<uint8_t>(Settings::getInstance().pixel_size()));
         titleObject.refresh();
 
         createTilePanel();
-    }
-
-    void manageEvent() override {
-        if (!event) return;
-
-        if (event->is<sf::Event::Resized>()) {
-            manageResizedEvent();
-            return;
-        }
-
-        if (const auto *key = event->getIf<sf::Event::KeyPressed>()) {
-            switch (key->scancode) {
-                case sf::Keyboard::Scancode::Right:
-                    cursorX++;
-                    break;
-
-                case sf::Keyboard::Scancode::Left:
-                    cursorX--;
-                    break;
-
-                case sf::Keyboard::Scancode::Up:
-                    cursorY--;
-                    break;
-
-                case sf::Keyboard::Scancode::Down:
-                    cursorY++;
-                    break;
-
-                case sf::Keyboard::Scancode::Enter: {
-                    if (const sf::Color newColor = colors[cursorX + cursorY * columns];
-                        newColor != Settings::getInstance().background_color() &&
-                        newColor != Settings::getInstance().text_color() &&
-                        newColor != Settings::getInstance().cursor_color()) {
-                        if (target == 0) {
-                            Settings::getInstance().set_background_color(newColor);
-                        }
-                        if (target == 1) {
-                            Settings::getInstance().set_text_color(newColor);
-                        }
-                        if (target == 2) {
-                            Settings::getInstance().set_cursor_color(newColor);
-                        }
-                        Settings::getInstance().update();
-                    }
-
-                    setNextScene(SceneID::SettingsMenu);
-                    exit();
-                    return;
-                }
-
-                case sf::Keyboard::Scancode::Escape:
-                    setNextScene(SceneID::SettingsMenu);
-                    exit();
-                    return;
-
-                default:
-                    break;
-            }
-
-            // repair overflow/underflow moves
-            if (cursorX < 0) {
-                cursorX = 0;
-            }
-            if (cursorY < 0) {
-                cursorY = 0;
-            }
-            if (cursorX >= columns) {
-                cursorX = static_cast<int8_t>(columns - 1);
-            }
-            if (cursorY >= rows) {
-                cursorY = static_cast<int8_t>(rows - 1);
-            }
-
-            updateCursor();
-        }
     }
 
     void draw() override {
@@ -1306,18 +1316,10 @@ public:
         window->draw(cursorVertexArray);
     }
 
-    void reset() override {
-        cursorX = 0;
-        cursorY = 0;
-        requestExit = false;
-        nextScene = SceneID::Exit;
-    }
-
     ~TilePanel() override = default;
 };
 
 class Menu : public Scene {
-    sf::RenderWindow *window = nullptr;
     ReadOnlyText text;
     std::vector<SceneID> actions;
     int cursor = 0;
@@ -1328,14 +1330,9 @@ class Menu : public Scene {
 
     std::string parameters;
 
-    SceneID parentID;
-
     void updateCursor() {
         lineHeight = static_cast<int16_t>(Settings::getInstance().pixel_size() * 9);
-
         cursorVertexArray.clear();
-        cursorVertexArray.setPrimitiveType(sf::PrimitiveType::Triangles);
-
         VertexArrayUtility::insertRectangle(
             cursorVertexArray,
             0,
@@ -1346,57 +1343,7 @@ class Menu : public Scene {
         );
     }
 
-public:
-    std::ostream& print(std::ostream& os) const override {
-        Scene::print(os);
-
-        os << "This is the Menu class: "
-                << " window: " << window
-                << " text: " << text
-                << " actions: " << actions.size()
-                << " cursor: " << cursor
-                << " cursorVertexArray: " << cursorVertexArray.getVertexCount()
-                << " len: " << len
-                << " lineHeight: " << lineHeight
-                << " parameters: " << parameters;
-        return os;
-    }
-    friend std::ostream &operator<<(std::ostream &os, const Menu &obj) {
-        os << "This is the Menu class: "
-                << static_cast<const Scene &>(obj)
-                << " window: " << obj.window
-                << " text: " << obj.text
-                << " actions: " << obj.actions.size()
-                << " cursor: " << obj.cursor
-                << " cursorVertexArray: " << obj.cursorVertexArray.getVertexCount()
-                << " len: " << obj.len
-                << " lineHeight: " << obj.lineHeight
-                << " parameters: " << obj.parameters;
-        return os;
-    }
-
-    Menu(sf::RenderWindow *window_, const std::string &menuText, const std::vector<SceneID> &actions_,
-         const SceneID parentID_ = SceneID::Exit)
-        : Scene(window_),
-          window(window_),
-          actions(actions_), parentID(parentID_) {
-        len = static_cast<int>(actions.size());
-
-        text = ReadOnlyText{
-            window,
-            menuText,
-            0, 0,
-            static_cast<uint8_t>(Settings::getInstance().pixel_size()),
-            static_cast<size_t>(Settings::getInstance().window_w()),
-            static_cast<size_t>(Settings::getInstance().window_h()),
-            Settings::getInstance().text_color(),
-            false
-        };
-
-        updateCursor();
-    }
-
-    ~Menu() override = default;
+    void reset() override {}
 
     void manageEvent() override {
         if (!event) return;
@@ -1423,16 +1370,11 @@ public:
                     break;
                 case sf::Keyboard::Scancode::Enter:
                     if (cursor >= 0 && cursor < len) {
-                        setNextScene(actions[cursor]);
+                        setSceneToReturnAt(actions[cursor]);
                         exit();
                     }
                     break;
                 case sf::Keyboard::Scancode::Escape:
-                    setNextScene(SceneID::Exit);
-                    exit();
-                    break;
-                case sf::Keyboard::Scancode::E:
-                    setNextScene(parentID); // go to the previous menu
                     exit();
                     break;
                 default:
@@ -1441,12 +1383,64 @@ public:
         }
     }
 
+public:
+    std::ostream &print(std::ostream &os) const override {
+        Scene::print(os);
+
+        os << "This is the Menu class: "
+                << " window: " << window
+                << " text: " << text
+                << " actions: " << actions.size()
+                << " cursor: " << cursor
+                << " cursorVertexArray: " << cursorVertexArray.getVertexCount()
+                << " len: " << len
+                << " lineHeight: " << lineHeight
+                << " parameters: " << parameters;
+        return os;
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const Menu &obj) {
+        os << "This is the Menu class: "
+                << static_cast<const Scene &>(obj)
+                << " window: " << obj.window
+                << " text: " << obj.text
+                << " actions: " << obj.actions.size()
+                << " cursor: " << obj.cursor
+                << " cursorVertexArray: " << obj.cursorVertexArray.getVertexCount()
+                << " len: " << obj.len
+                << " lineHeight: " << obj.lineHeight
+                << " parameters: " << obj.parameters;
+        return os;
+    }
+
+    Menu(sf::RenderWindow *window_, const std::string &menuText, const std::vector<SceneID> &actions_,
+         const SceneID sceneToReturnAt_)
+        : Scene(window_, sceneToReturnAt_),
+          actions(actions_) {
+
+        len = static_cast<int>(actions.size());
+        text = ReadOnlyText{
+            window,
+            menuText,
+            0, 0,
+            static_cast<uint8_t>(Settings::getInstance().pixel_size()),
+            static_cast<size_t>(Settings::getInstance().window_w()),
+            static_cast<size_t>(Settings::getInstance().window_h()),
+            Settings::getInstance().text_color(),
+            false
+        };
+        cursorVertexArray.setPrimitiveType(sf::PrimitiveType::Triangles);
+        updateCursor();
+    }
+
+    ~Menu() override = default;
+
     void draw() override {
         window->draw(cursorVertexArray);
         text.draw();
     }
 
-    void refresh() override {
+    void begin() override {
         text.setTextColor(Settings::getInstance().text_color());
         text.setPixelSize(Settings::getInstance().pixel_size());
 
@@ -1456,10 +1450,16 @@ public:
 };
 
 class SceneManager {
+    sf::VertexArray background;
+
+    void updateBackground() {
+        background.clear();
+        VertexArrayUtility::insertRectangle(background, 0, 0, static_cast<int16_t>(window->getSize().x),
+                                            static_cast<int16_t>(window->getSize().y),
+                                            Settings::getInstance().background_color());
+    }
+
     sf::RenderWindow *window;
-    sf::Vector2u formerWindowSize;
-    sf::Vector2i formerWindowPos;
-    bool isGreetMode = false;
 
     std::unique_ptr<Scene> mainMenu;
     std::unique_ptr<Scene> settingsMenu;
@@ -1482,7 +1482,6 @@ class SceneManager {
     Scene *currentScene = nullptr;
 
     [[nodiscard]] Scene *resolve(const SceneID id) const {
-
         switch (id) {
             case SceneID::MainMenu: return mainMenu.get();
             case SceneID::SettingsMenu: return settingsMenu.get();
@@ -1515,20 +1514,20 @@ class SceneManager {
     void createScenes() {
         pixelSizeSettings = std::make_unique<Menu>(
             window,
-            "PIXEL SIZE SETTER - E to exit\nincrease\ndecrease",
+            "PIXEL SIZE SETTER - ESC to go back\nincrease\ndecrease",
             std::vector{
                 SceneID::Increase,
                 SceneID::Decrease
             },
             SceneID::SettingsMenu
         );
-        backgroundSettings = std::make_unique<TilePanel>(window, "Background: Enter to select", 0);
-        textSettings = std::make_unique<TilePanel>(window, "Text: Enter to select", 1);
-        cursorSettings = std::make_unique<TilePanel>(window, "Cursor: Enter to select", 2);
+        backgroundSettings = std::make_unique<TilePanel>(window, "Background: Enter to select", 0, SceneID::SettingsMenu);
+        textSettings = std::make_unique<TilePanel>(window, "Text: Enter to select", 1, SceneID::SettingsMenu);
+        cursorSettings = std::make_unique<TilePanel>(window, "Cursor: Enter to select", 2, SceneID::SettingsMenu);
 
         settingsMenu = std::make_unique<Menu>(
             window,
-            "SETTINGS MENU - E to exit\nbackground color\ntext color\ncursor color\npixel size\nrestore defaults",
+            "SETTINGS MENU - ESC to go back\nbackground color\ntext color\ncursor color\npixel size\nrestore defaults",
             std::vector{
                 SceneID::BackgroundSettings,
                 SceneID::TextSettings,
@@ -1539,9 +1538,9 @@ class SceneManager {
             SceneID::MainMenu
         );
 
-        newFile = std::make_unique<Greet>(window, "new file");
-        openFromDisk = std::make_unique<Greet>(window, "open file");
-        aiMode = std::make_unique<Greet>(window, "malware successfully installed");
+        newFile = std::make_unique<Greet>(window, "new file", SceneID::MainMenu);
+        openFromDisk = std::make_unique<Greet>(window, "open file", SceneID::MainMenu);
+        aiMode = std::make_unique<Greet>(window, "malware successfully installed", SceneID::Exit);
 
         // will be modified with paths and other things like that
         std::ifstream input("tastatura.txt");
@@ -1550,13 +1549,11 @@ class SceneManager {
             std::istreambuf_iterator<char>()
         );
         input.close();
-        editor = std::make_unique<EditableText>(window, s, 0, 0,
-                                                window->getSize().x,
-                                                window->getSize().y);
+        editor = std::make_unique<EditableText>(window, s, 0, 0, window->getSize().x, window->getSize().y, SceneID::MainMenu);
 
         mainMenu = std::make_unique<Menu>(
             window,
-            "MAIN MENU - E to exit\nsettings\nnew file *ISN'T WORKING YET*\nopen from disk *ISN'T WORKING YET*\nAI mode *ISN'T WORKING YET*\ndemo text editor",
+            "MAIN MENU - ESC to quit\nsettings\nnew file\nopen from disk\nAI mode\ndemo text editor",
             std::vector{
                 SceneID::SettingsMenu,
                 SceneID::NewFile,
@@ -1574,10 +1571,6 @@ public:
                 << "\nThis is the SceneManager class: "
                 << "\n---------------------------------------------------------------------------------------"
                 << "\nwindow: " << obj.window
-                << "\n---------------------------------------------------------------------------------------"
-                << "\noriginalWindowSize: " << obj.formerWindowSize.x << ", " << obj.formerWindowSize.y
-                << "\n---------------------------------------------------------------------------------------"
-                << "\nisGreetMode: " << obj.isGreetMode
                 << "\n---------------------------------------------------------------------------------------"
                 << "\nmainMenu: " << *obj.mainMenu
                 << "\n---------------------------------------------------------------------------------------"
@@ -1621,6 +1614,9 @@ public:
               Settings::getInstance().update();
           }, SceneID::PixelSizeSettings),
           restoreButton(window_, []() { Settings::getInstance().update(true); }, SceneID::SettingsMenu) {
+        background.setPrimitiveType(sf::PrimitiveType::Triangles);
+        updateBackground();
+
         createScenes();
         currentScene = mainMenu.get();
     }
@@ -1638,52 +1634,29 @@ public:
                     // update the view to the new size of the window
                     sf::FloatRect visibleArea({0.f, 0.f}, sf::Vector2f(resized->size));
                     window->setView(sf::View(visibleArea));
+                    updateBackground();
                 }
                 currentScene->manageEvent(*e);
             }
 
             window->clear();
-            currentScene->drawBackend();
+            window->draw(background);
+            currentScene->draw();
             window->display();
 
             if (currentScene->hasFinished()) {
-                const SceneID next = currentScene->getNextScene();
-                currentScene->resetBackEnd();
+                updateBackground();
 
-                const bool nextIsGreet = (next == SceneID::NewFile ||
-                                          next == SceneID::OpenFromDisk ||
-                                          next == SceneID::AIMode);
-
-                if (nextIsGreet && !isGreetMode) {
-                    window->setFramerateLimit(20);
-                    formerWindowSize = window->getSize();
-
-                    const int W = Settings::getInstance().pixel_size() * 9 * 8 * 3;
-                    const int H = Settings::getInstance().pixel_size() * 9 * 8;
-
-                    formerWindowPos = window->getPosition();
-
-                    sf::Vector2i desiredPos;
-                    desiredPos.x = static_cast<int>(formerWindowPos.x + (window->getSize().x - W) / 2);
-                    desiredPos.y = static_cast<int>(formerWindowPos.y + (window->getSize().y - H) / 2);
-
-                    window->setSize({static_cast<unsigned int>(W), static_cast<unsigned int>(H)});
-
-                    window->setPosition(desiredPos);
-
-                    isGreetMode = true;
-                } else if (!nextIsGreet && isGreetMode) {
-                    window->setFramerateLimit(10);
-                    window->setSize(formerWindowSize);
-                    window->setPosition(formerWindowPos);
-                    isGreetMode = false;
-                }
+                const SceneID next = currentScene->getSceneToReturnAt();
+                currentScene->end();
 
                 Scene *nextPtr = resolve(next);
-                if (!nextPtr) return;
+                if (!nextPtr) {
+                    return;
+                }
 
                 currentScene = nextPtr;
-                currentScene->refreshBackend();
+                currentScene->begin();
             }
         }
     }
