@@ -1,6 +1,3 @@
-# Configuration for app navigation menus
-# Format: Item: [Visible Menu Label] -> [Target SceneID ID]
-
 [Menu]
 ID: MainMenu
 Return: Exit

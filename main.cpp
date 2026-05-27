@@ -1506,7 +1506,7 @@ class SceneManager {
         scenes[SceneID::AIMode] = std::make_unique<Greet>(window, "malware successfully installed", SceneID::Exit);
 
         std::ifstream input("tastatura.txt");
-        const std::string s((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
+        const std::string s((std::istreambuf_iterator(input)), std::istreambuf_iterator<char>());
         input.close();
 
         scenes[SceneID::DemoTextEditor] = std::make_unique<EditableText>(
@@ -1544,7 +1544,7 @@ class SceneManager {
         };
 
         while (std::getline(menuFile, line)) {
-            if (line.empty() || line[0] == '#') {
+            if (line.empty()) {
                 continue;
             }
             if (line == "[Menu]") {
