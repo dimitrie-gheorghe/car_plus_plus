@@ -1,26 +1,30 @@
 [Menu]
-ID: MainMenu
-Return: Exit
-Title: MAIN MENU - ESC to quit
-Item: settings -> SettingsMenu
-Item: new file -> NewFile
-Item: open from disk -> OpenFromDisk
-Item: AI mode -> AIMode
-Item: demo text editor -> DemoTextEditor
+ID: 0
+Return: 13
+Title: MAIN MENU - ESC TO EXIT
+Item: New File -> 9
+Item: Open From Disk -> 10
+Item: Settings -> 1
+Item: AI Mode -> 11
 
 [Menu]
-ID: SettingsMenu
-Return: MainMenu
-Title: SETTINGS MENU - ESC to go back
-Item: background color -> BackgroundSettings
-Item: text color -> TextSettings
-Item: cursor color -> CursorSettings
-Item: pixel size -> PixelSizeSettings
-Item: restore defaults -> RestoreDefaults
+ID: 1
+Return: 0
+Title: SETTINGS - ESC TO EXIT
+Item: Background Color -> 2
+Item: Text Color -> 3
+Item: Cursor Color -> 4
+Item: Pixel Size -> 5
+Item: Restore Defaults -> 6
 
 [Menu]
-ID: PixelSizeSettings
-Return: SettingsMenu
-Title: PIXEL SIZE SETTER - ESC to go back
-Item: increase -> Increase
-Item: decrease -> Decrease
+ID: 5
+Return: 1
+Title: PIXEL SIZE - ESC TO EXIT
+Item: Increase Size -> 7
+Item: Decrease Size -> 8
+
+[Menu]
+ID: 14
+Return: 0
+Title: Welcome to car_plus_plus!

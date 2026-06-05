@@ -6,18 +6,52 @@
 #include <ostream>
 #include <ranges>
 #include <string>
+#include <utility>
 #include <vector>
 #include <unordered_map>
 #include <sstream>
 
 #include <SFML/Graphics.hpp>
-#include <utility>
+//#include <utility>
+#include <exception>
+#include <stdexcept>
+#include "portable-file-dialogs.h"
+
+class AppError : public std::runtime_error {
+public:
+    explicit AppError(const std::string &msg) : std::runtime_error(msg) {
+    }
+};
+
+class ConfigurationError : public AppError {
+public:
+    ConfigurationError() : AppError("Error: Configuration file is malformed or missing.") {
+    }
+};
+
+class AssetLoadError : public AppError {
+public:
+    AssetLoadError() : AppError("Error: Required assets could not be loaded.") {
+    }
+};
+
+class SceneInitializationError : public AppError {
+public:
+    SceneInitializationError() : AppError("Error: Failed to initialize a required scene.") {
+    }
+};
 
 class FontManager {
     uint8_t ascii[8 * 95]{};
 
     FontManager() {
-        std::ifstream input("./assets/font.txt");
+        const std::filesystem::path sourcePath = SOURCE_DIR;
+        const std::filesystem::path fontPath = sourcePath / "assets" / "font.txt";
+
+        std::ifstream input(fontPath);
+        if (!input.is_open()) {
+            throw AssetLoadError();
+        }
         int x;
         for (unsigned char &i: ascii) {
             input >> x;
@@ -104,12 +138,11 @@ class Settings {
 
         std::ifstream input(settingsFile);
 
-        if (!input.is_open() || resetDefaults) {
-            if (resetDefaults) {
-                std::cout << "Default settings will be restored";
-            } else {
-                std::cerr << "Could not open: " << settingsFile << "\nDefault settings will be used instead";
-            }
+        if (!input.is_open() && !resetDefaults) {
+            throw ConfigurationError();
+        }
+        if (resetDefaults) {
+            std::cout << "Default settings will be restored";
             windowW = 800;
             windowH = 700;
             pixelSize = 2;
@@ -258,20 +291,21 @@ public:
 };
 
 enum class SceneID {
-    MainMenu,
-    SettingsMenu,
-    BackgroundSettings,
-    TextSettings,
-    CursorSettings,
-    PixelSizeSettings,
-    RestoreDefaults,
-    Increase,
-    Decrease,
-    NewFile,
-    OpenFromDisk,
-    AIMode,
-    DemoTextEditor,
-    Exit
+    MainMenu = 0,
+    SettingsMenu = 1,
+    BackgroundSettings = 2,
+    TextSettings = 3,
+    CursorSettings = 4,
+    PixelSizeSettings = 5,
+    RestoreDefaults = 6,
+    Increase = 7,
+    Decrease = 8,
+    NewFile = 9,
+    OpenFromDisk = 10,
+    AIMode = 11,
+    TextEditor = 12,
+    Exit = 13,
+    Intro = 14
 };
 
 class Scene {
@@ -301,6 +335,8 @@ public:
     }
 
     virtual ~Scene() = default;
+
+    [[nodiscard]] virtual std::unique_ptr<Scene> clone() const = 0;
 
     virtual void draw() = 0;
 
@@ -344,6 +380,10 @@ class Button : public Scene {
     }
 
 public:
+    [[nodiscard]] std::unique_ptr<Scene> clone() const override {
+        return std::make_unique<Button>(*this);
+    }
+
     void begin() override {
         action();
         exit();
@@ -581,6 +621,8 @@ public:
 
 class EditableText : public Scene {
     std::string text;
+    std::filesystem::path currentFilePath;
+
     int16_t x = 0;
     int16_t y = 0;
     size_t W = 0;
@@ -842,9 +884,6 @@ class EditableText : public Scene {
         }
     }
 
-    // void save() {
-    //   to be completed
-    // }
     void reset() override {
     }
 
@@ -893,6 +932,18 @@ class EditableText : public Scene {
     }
 
 public:
+    [[nodiscard]] std::filesystem::path getFilePath() const {
+        return currentFilePath;
+    }
+
+    [[nodiscard]] std::string getText() const {
+        return text;
+    }
+
+    [[nodiscard]] std::unique_ptr<Scene> clone() const override {
+        return std::make_unique<EditableText>(*this);
+    }
+
     friend std::ostream &operator<<(std::ostream &os, const EditableText &obj) {
         os << "This is the EditableText class: "
                 << static_cast<const Scene &>(obj)
@@ -915,9 +966,11 @@ public:
         return os << *this;
     }
 
-    explicit EditableText(sf::RenderWindow *window_, std::string text_, const int16_t x_, const int16_t y_,
+    explicit EditableText(sf::RenderWindow *window_, std::string initialText_, std::filesystem::path filePath,
+                          const int16_t x_, const int16_t y_,
                           const size_t W_, const size_t H_, const SceneID sceneToReturnAt_)
-        : Scene(window_, sceneToReturnAt_), text(std::move(text_)), x(x_), y(y_), W(W_), H(H_) {
+        : Scene(window_, sceneToReturnAt_), text(std::move(initialText_)), currentFilePath(std::move(filePath)), x(x_),
+          y(y_), W(W_), H(H_) {
         updateVertexArray();
     }
 
@@ -956,7 +1009,7 @@ class Greet : public Scene {
         window->create(sf::VideoMode({static_cast<unsigned int>(W), static_cast<unsigned int>(H)}),
                        "", sf::Style::None, sf::State::Windowed);
         window->setPosition(desiredPos);
-        window->setFramerateLimit(20);
+        window->setFramerateLimit(30);
     }
 
     void resetProperties() {
@@ -975,6 +1028,10 @@ class Greet : public Scene {
     }
 
 public:
+    [[nodiscard]] std::unique_ptr<Scene> clone() const override {
+        return std::make_unique<Greet>(*this);
+    }
+
     friend std::ostream &operator<<(std::ostream &os, const Greet &obj) {
         os << "This is the Greet class: "
                 << static_cast<const Scene &>(obj)
@@ -1071,7 +1128,13 @@ class TilePanel : public Scene {
         cursorVertexArray.clear();
         cursorVertexArray.setPrimitiveType(sf::PrimitiveType::Triangles);
 
-        std::ifstream input("./assets/tilePanelData.txt");
+        const std::filesystem::path sourcePath = SOURCE_DIR;
+        const std::filesystem::path dataPath = sourcePath / "assets" / "tilePanelData.txt";
+
+        std::ifstream input(dataPath);
+        if (!input.is_open()) {
+            throw AssetLoadError();
+        }
         input >> rows >> columns;
 
         cellW = static_cast<int16_t>(window->getSize().x / (2 * columns));
@@ -1222,6 +1285,10 @@ class TilePanel : public Scene {
     }
 
 public:
+    [[nodiscard]] std::unique_ptr<Scene> clone() const override {
+        return std::make_unique<TilePanel>(*this);
+    }
+
     friend std::ostream &operator<<(std::ostream &os, const TilePanel &obj) {
         os << "This is the TilePanel class: "
                 << static_cast<const Scene &>(obj)
@@ -1348,6 +1415,10 @@ class Menu : public Scene {
     }
 
 public:
+    [[nodiscard]] std::unique_ptr<Scene> clone() const override {
+        return std::make_unique<Menu>(*this);
+    }
+
     friend std::ostream &operator<<(std::ostream &os, const Menu &obj) {
         os << "This is the Menu class: "
                 << static_cast<const Scene &>(obj)
@@ -1402,7 +1473,6 @@ public:
 };
 
 class SceneManager {
-    std::unordered_map<std::string, SceneID> stringToSceneID;
     std::unordered_map<SceneID, std::unique_ptr<Scene> > scenes;
     sf::VertexArray background;
     sf::RenderWindow *window;
@@ -1415,9 +1485,45 @@ class SceneManager {
                                             Settings::getInstance().background_color());
     }
 
+    bool handleFileOperation(SceneID action) {
+        std::filesystem::path targetPath;
+        std::string content;
+
+        if (action == SceneID::OpenFromDisk) {
+            auto selection = pfd::open_file("Open Text File", ".", {"Text Files", "*.txt", "All Files", "*"}).result();
+            if (selection.empty()) return false;
+
+            targetPath = selection[0];
+
+            std::ifstream input(targetPath);
+            if (input.is_open()) {
+                content.assign((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
+            } else {
+                pfd::message("Error", "Could not read the file.", pfd::choice::ok, pfd::icon::error).result();
+                return false;
+            }
+        } else if (action == SceneID::NewFile) {
+            auto destination = pfd::save_file("Create New File", ".", {"Text Files", "*.txt"}).result();
+            if (destination.empty()) {
+                return false;
+            }
+
+            targetPath = destination;
+        }
+
+        scenes[SceneID::TextEditor] = std::make_unique<EditableText>(
+            window, content, targetPath, 0, 0, window->getSize().x, window->getSize().y, SceneID::MainMenu);
+
+        return true;
+    }
+
     [[nodiscard]] Scene *resolve(const SceneID id) const {
         if (id == SceneID::Exit) {
             window->close();
+            return nullptr;
+        }
+
+        if (id == SceneID::NewFile || id == SceneID::OpenFromDisk) {
             return nullptr;
         }
 
@@ -1425,9 +1531,7 @@ class SceneManager {
             return scenes.at(id).get();
         }
 
-        std::cout << "Scene ID error\n";
-        window->close();
-        return nullptr;
+        throw SceneInitializationError();
     }
 
     void createButtons() {
@@ -1465,34 +1569,6 @@ class SceneManager {
         }
     }
 
-    void loadSceneMappings() {
-        const std::filesystem::path sourcePath = SOURCE_DIR;
-        std::filesystem::path mappingFile = sourcePath / "config" / "scene_mappings.txt";
-        std::ifstream input(mappingFile);
-
-        if (!input.is_open()) {
-            std::cerr << "Load failed" << sourcePath / "config" / "scene_mappings.txt" << "\n";
-            window->close();
-            return;
-        }
-
-        std::string line;
-        while (std::getline(input, line)) {
-            if (line.empty() || line[0] == '#') {
-                continue;
-            }
-
-            std::stringstream ss(line);
-            std::string sceneStr;
-            int enumValue;
-
-            if (ss >> sceneStr >> enumValue) {
-                stringToSceneID[sceneStr] = static_cast<SceneID>(enumValue);
-            }
-        }
-        input.close();
-    }
-
     void createScenes() {
         scenes[SceneID::BackgroundSettings] = std::make_unique<TilePanel>(
             window, "Background: Enter to select", 0, SceneID::SettingsMenu);
@@ -1500,88 +1576,64 @@ class SceneManager {
                                                                     SceneID::SettingsMenu);
         scenes[SceneID::CursorSettings] = std::make_unique<TilePanel>(window, "Cursor: Enter to select", 2,
                                                                       SceneID::SettingsMenu);
-
-        scenes[SceneID::NewFile] = std::make_unique<Greet>(window, "new file", SceneID::MainMenu);
-        scenes[SceneID::OpenFromDisk] = std::make_unique<Greet>(window, "open file", SceneID::MainMenu);
         scenes[SceneID::AIMode] = std::make_unique<Greet>(window, "malware successfully installed", SceneID::Exit);
-
-        std::ifstream input("tastatura.txt");
-        const std::string s((std::istreambuf_iterator(input)), std::istreambuf_iterator<char>());
-        input.close();
-
-        scenes[SceneID::DemoTextEditor] = std::make_unique<EditableText>(
-            window, s, 0, 0, window->getSize().x, window->getSize().y, SceneID::MainMenu);
 
         const std::filesystem::path sourcePath = SOURCE_DIR;
         std::ifstream menuFile(sourcePath / "config" / "menu_eng.txt");
 
         if (!menuFile.is_open()) {
-            std::cerr << "Load failed: " << sourcePath / "config" / "menu_eng.txt" << "\n";
-            window->close();
-            return;
+            throw ConfigurationError();
         }
 
         std::string line;
-        std::string currentMenuID;
-        auto returnID = SceneID::Exit;
+        int currentMenuID = -1;
+        int returnID = 13;
         std::string menuText;
         std::vector<SceneID> actions;
 
-        auto buildActiveMenu = [&]() {
-            if (currentMenuID.empty()) {
-                return;
-            }
-            auto parsedMenu = std::make_unique<Menu>(window, menuText, actions, returnID);
+        auto buildActiveMenu = [&] {
+            if (currentMenuID == -1) return;
 
-            if (stringToSceneID.contains(currentMenuID)) {
-                SceneID menuID = stringToSceneID.at(currentMenuID);
-                scenes[menuID] = std::move(parsedMenu);
+            if (auto menuID = static_cast<SceneID>(currentMenuID); menuID == SceneID::Intro) {
+                scenes[menuID] = std::make_unique<Greet>(window, menuText, static_cast<SceneID>(returnID));
+            } else {
+                scenes[menuID] = std::make_unique<Menu>(window, menuText, actions, static_cast<SceneID>(returnID));
             }
 
             actions.clear();
             menuText.clear();
-            currentMenuID.clear();
+            currentMenuID = -1;
         };
 
         while (std::getline(menuFile, line)) {
-            if (line.empty()) {
-                continue;
-            }
+            if (line.empty()) continue;
             if (line == "[Menu]") {
                 buildActiveMenu();
                 continue;
             }
+
             size_t delimiterPos = line.find(':');
-            if (delimiterPos == std::string::npos) {
-                continue;
-            }
+            if (delimiterPos == std::string::npos) continue;
 
             std::string key = line.substr(0, delimiterPos);
             std::string value = line.substr(delimiterPos + 1);
-
-            value.erase(0, value.find_first_not_of(" \t"));
+            value.erase(0, value.find_first_not_of(" \t")); // Trim whitespace
 
             if (key == "ID") {
-                currentMenuID = value;
+                currentMenuID = std::stoi(value);
             } else if (key == "Return") {
-                if (stringToSceneID.contains(value)) {
-                    returnID = stringToSceneID.at(value);
-                }
+                returnID = std::stoi(value);
             } else if (key == "Title") {
                 menuText = value;
             } else if (key == "Item") {
                 if (size_t arrowPos = value.find("->"); arrowPos != std::string::npos) {
                     std::string label = value.substr(0, arrowPos);
-                    std::string targetScene = value.substr(arrowPos + 2);
+                    std::string targetSceneStr = value.substr(arrowPos + 2);
 
                     label.erase(label.find_last_not_of(" \t") + 1);
-                    targetScene.erase(0, targetScene.find_first_not_of(" \t"));
-
                     menuText += "\n" + label;
 
-                    if (stringToSceneID.contains(targetScene)) {
-                        actions.push_back(stringToSceneID.at(targetScene));
-                    }
+                    actions.push_back(static_cast<SceneID>(std::stoi(targetSceneStr)));
                 }
             }
         }
@@ -1615,12 +1667,14 @@ public:
         updateBackground();
 
         createButtons();
-        loadSceneMappings();
         createScenes();
-        currentScene = scenes[SceneID::MainMenu].get();
+        currentScene = scenes[SceneID::Intro].get();
     }
 
     void run() {
+        if (currentScene) {
+            currentScene->begin();
+        }
         while (window->isOpen()) {
             while (auto e = window->pollEvent()) {
                 if (e->is<sf::Event::Closed>()) {
@@ -1643,14 +1697,29 @@ public:
             window->display();
 
             if (currentScene->hasFinished()) {
+                if (const auto *editor = dynamic_cast<EditableText *>(currentScene)) {
+                    if (std::ofstream output(editor->getFilePath()); output.is_open()) {
+                        output << editor->getText();
+                    }
+                }
+
                 updateBackground();
 
-                const SceneID next = currentScene->getSceneToReturnAt();
+                SceneID next = currentScene->getSceneToReturnAt();
                 currentScene->end();
+
+                if (next == SceneID::NewFile || next == SceneID::OpenFromDisk) {
+                    if (handleFileOperation(next)) {
+                        next = SceneID::TextEditor;
+                    } else {
+                        next = SceneID::MainMenu;
+                    }
+                }
 
                 Scene *nextPtr = resolve(next);
                 if (!nextPtr) {
-                    return;
+                    if (!window->isOpen()) return;
+                    continue;
                 }
 
                 currentScene = nextPtr;
@@ -1661,18 +1730,29 @@ public:
 };
 
 int main() {
-    sf::RenderWindow window;
-    window.create(sf::VideoMode({800, 700}), "car_plus_plus", sf::Style::Default, sf::State::Windowed);
-    std::cout << "The window was created successfully\n";
-    window.setFramerateLimit(10);
+    try {
+        sf::RenderWindow window;
+        window.create(sf::VideoMode({800, 700}), "car_plus_plus", sf::Style::Default, sf::State::Windowed);
+        std::cout << "The window was created successfully\n";
+        window.setFramerateLimit(10);
 
-    SceneManager sm(&window);
+        SceneManager sm(&window);
 
-    // compunerea cu operator<< se vede in clasa SceneManager, care afiseaza mai multe obiecte
-    std::cout << "Afisare: " << sm << "\nwindow width: " << window.getSize().x << ", window height: " << window.
-            getSize().y << '\n';
+        // compunerea cu operator<< se vede in clasa SceneManager, care afiseaza mai multe obiecte
+        std::cout << "Afisare: " << sm << "\nwindow width: " << window.getSize().x << ", window height: " << window.
+                getSize().y << '\n';
 
-    sm.run();
+        sm.run();
+    } catch (const ConfigurationError &e) {
+        std::cerr << "Config Error: " << e.what() << std::endl;
+        return 1;
+    } catch (const AssetLoadError &e) {
+        std::cerr << "Asset Error: " << e.what() << std::endl;
+        return 1;
+    } catch (const std::exception &e) {
+        std::cerr << "General Exception: " << e.what() << std::endl;
+        return 1;
+    }
 
     std::cout << "The program finished successfully\n";
     return 0;

@@ -22,3 +22,16 @@ The [template repository](https://github.com/mcmarius/oop-template) itself is li
 ## Resources
 <!-- renovate: datasource=github-tags depName=SFML/SFML versioning=loose -->
 - [SFML](https://github.com/SFML/SFML/tree/3.0.2) (Zlib)
+- [portable-file-dialogs](https://github.com/samhocevar/portable-file-dialogs) (WTFPL)
+
+## Linux Dependencies
+
+The file picker dialogs (`Open From Disk`) rely on a native desktop backend to generate graphical dialog overlays. If you are compiling or running the application on Linux (especially within a clean WSL setup or a minimalist window manager like i3, dwm, etc.), ensure you have at least one of the following system utilities installed:
+
+- `zenity` (Standard for GNOME/GTK-based desktops)
+- `kdialog` (Standard for KDE-based desktops)
+- `matedialog` or `qarma`
+
+On Ubuntu/Debian, you can install the most common backend by running:
+```bash
+sudo apt update && sudo apt install zenity
