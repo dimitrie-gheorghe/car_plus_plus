@@ -15,6 +15,7 @@ Item: Background Color -> 2
 Item: Text Color -> 3
 Item: Cursor Color -> 4
 Item: Pixel Size -> 5
+Item: Change Language -> 15
 Item: Restore Defaults -> 6
 
 [Menu]

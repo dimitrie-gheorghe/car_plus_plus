@@ -1,0 +1,31 @@
+[Menu]
+ID: 0
+Return: 13
+Title: MENIU PRINCIPAL - ESC PENTRU IESIRE
+Item: Fisier Nou -> 9
+Item: Deschide de pe Disc -> 10
+Item: Setari -> 1
+Item: Mod AI -> 11
+
+[Menu]
+ID: 1
+Return: 0
+Title: SETARI - ESC PENTRU IESIRE
+Item: Culoare Fundal -> 2
+Item: Culoare Text -> 3
+Item: Culoare Cursor -> 4
+Item: Dimensiune Pixel -> 5
+Item: Schimba Limba -> 15
+Item: Restabileste Implicite -> 6
+
+[Menu]
+ID: 5
+Return: 1
+Title: DIMENSIUNE PIXEL - ESC PENTRU IESIRE
+Item: Mareste Dimensiunea -> 7
+Item: Micsoreaza Dimensiunea -> 8
+
+[Menu]
+ID: 14
+Return: 0
+Title: Bine ati venit la car_plus_plus!

@@ -15,7 +15,7 @@
 //#include <utility>
 #include <exception>
 #include <stdexcept>
-#include "portable-file-dialogs.h"
+#include "./include/portable-file-dialogs.h"
 
 class AppError : public std::runtime_error {
 public:
@@ -132,6 +132,8 @@ class Settings {
     sf::Color textColor = sf::Color(0, 0, 0);
     sf::Color cursorColor = sf::Color(0, 255, 0);
 
+    bool isEnglish = true;
+
     void loadSettings(const bool resetDefaults = false) {
         const std::filesystem::path sourcePath = SOURCE_DIR;
         const std::filesystem::path settingsFile = sourcePath / "config" / "settings.txt";
@@ -149,6 +151,7 @@ class Settings {
             backgroundColor = sf::Color(255, 255, 255);
             textColor = sf::Color(0, 0, 0);
             cursorColor = sf::Color(0, 255, 0);
+            isEnglish = true;
             return;
         }
 
@@ -176,6 +179,12 @@ class Settings {
         cursorColor.g = g;
         cursorColor.b = b;
 
+        if (std::string lang; input >> lang) {
+            isEnglish = (lang == "eng");
+        } else {
+            isEnglish = true;
+        }
+
         input.close();
     }
 
@@ -198,7 +207,8 @@ class Settings {
 
                 << "\n" << static_cast<int>(cursorColor.r)
                 << " " << static_cast<int>(cursorColor.g)
-                << " " << static_cast<int>(cursorColor.b);
+                << " " << static_cast<int>(cursorColor.b)
+                << "\n" << (isEnglish ? "eng" : "ro");
 
         output.close();
     }
@@ -239,6 +249,14 @@ public:
             storeSettings();
             loadSettings();
         }
+    }
+
+    [[nodiscard]] bool getIsEnglish() const {
+        return isEnglish;
+    }
+
+    void toggleLanguage() {
+        isEnglish = !isEnglish;
     }
 
     [[nodiscard]] int16_t window_w() const {
@@ -305,7 +323,8 @@ enum class SceneID {
     AIMode = 11,
     TextEditor = 12,
     Exit = 13,
-    Intro = 14
+    Intro = 14,
+    ToggleLanguage = 15
 };
 
 class Scene {
@@ -1538,7 +1557,7 @@ class SceneManager {
         std::unordered_map<SceneID, std::pair<std::function<void()>, SceneID> > buttonRegistry = {
             {
                 SceneID::Increase, {
-                    []() {
+                    [] {
                         Settings::getInstance().increase_pixel_size();
                         Settings::getInstance().update();
                     },
@@ -1547,7 +1566,7 @@ class SceneManager {
             },
             {
                 SceneID::Decrease, {
-                    []() {
+                    [] {
                         Settings::getInstance().decrease_pixel_size();
                         Settings::getInstance().update();
                     },
@@ -1556,8 +1575,19 @@ class SceneManager {
             },
             {
                 SceneID::RestoreDefaults, {
-                    []() {
+                    [this] {
                         Settings::getInstance().update(true);
+                        this->createScenes();
+                    },
+                    SceneID::SettingsMenu
+                }
+            },
+            {
+                SceneID::ToggleLanguage, {
+                    [this] {
+                        Settings::getInstance().toggleLanguage();
+                        Settings::getInstance().update();
+                        this->createScenes();
                     },
                     SceneID::SettingsMenu
                 }
@@ -1568,18 +1598,23 @@ class SceneManager {
             scenes[id] = std::make_unique<Button>(window, config.first, config.second);
         }
     }
-
     void createScenes() {
-        scenes[SceneID::BackgroundSettings] = std::make_unique<TilePanel>(
-            window, "Background: Enter to select", 0, SceneID::SettingsMenu);
-        scenes[SceneID::TextSettings] = std::make_unique<TilePanel>(window, "Text: Enter to select", 1,
-                                                                    SceneID::SettingsMenu);
-        scenes[SceneID::CursorSettings] = std::make_unique<TilePanel>(window, "Cursor: Enter to select", 2,
-                                                                      SceneID::SettingsMenu);
-        scenes[SceneID::AIMode] = std::make_unique<Greet>(window, "malware successfully installed", SceneID::Exit);
+        bool eng = Settings::getInstance().getIsEnglish();
+
+        std::string bgTitle = eng ? "Background: Enter to select" : "Fundal: Enter pentru selectie";
+        std::string textTitle = eng ? "Text: Enter to select" : "Text: Enter pentru selectie";
+        std::string cursorTitle = eng ? "Cursor: Enter to select" : "Cursor: Enter pentru selectie";
+        std::string aiTitle = eng ? "malware successfully installed" : "malware instalat cu succes";
+
+        scenes[SceneID::BackgroundSettings] = std::make_unique<TilePanel>(window, bgTitle, 0, SceneID::SettingsMenu);
+        scenes[SceneID::TextSettings] = std::make_unique<TilePanel>(window, textTitle, 1, SceneID::SettingsMenu);
+        scenes[SceneID::CursorSettings] = std::make_unique<TilePanel>(window, cursorTitle, 2, SceneID::SettingsMenu);
+        scenes[SceneID::AIMode] = std::make_unique<Greet>(window, aiTitle, SceneID::Exit);
 
         const std::filesystem::path sourcePath = SOURCE_DIR;
-        std::ifstream menuFile(sourcePath / "config" / "menu_eng.txt");
+
+        std::string filename = eng ? "menu_eng.txt" : "menu_ro.txt";
+        std::ifstream menuFile(sourcePath / "config" / filename);
 
         if (!menuFile.is_open()) {
             throw ConfigurationError();
