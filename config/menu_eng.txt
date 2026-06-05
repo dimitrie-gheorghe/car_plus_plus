@@ -28,4 +28,4 @@ Item: Decrease Size -> 8
 [Menu]
 ID: 14
 Return: 0
-Title: Welcome to car_plus_plus!
+Title: Welcome to car++!

@@ -28,4 +28,4 @@ Item: Micsoreaza Dimensiunea -> 8
 [Menu]
 ID: 14
 Return: 0
-Title: Bine ati venit la car_plus_plus!
+Title: Bine ati venit la car++!

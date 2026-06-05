@@ -1,3 +1,4 @@
+#include <utility>
 #include <functional>
 #include <filesystem>
 #include <memory>
@@ -6,13 +7,11 @@
 #include <ostream>
 #include <ranges>
 #include <string>
-#include <utility>
 #include <vector>
 #include <unordered_map>
 #include <sstream>
-
 #include <SFML/Graphics.hpp>
-//#include <utility>
+#include <algorithm>
 #include <exception>
 #include <stdexcept>
 #include "./include/portable-file-dialogs.h"
@@ -361,6 +360,10 @@ public:
 
     virtual void begin() = 0;
 
+    virtual void resume() {
+        requestExit = false;
+    }
+
     void end() {
         requestExit = false;
         sceneToReturnAt = defaultSceneToReturnAt;
@@ -644,6 +647,7 @@ class EditableText : public Scene {
 
     int16_t x = 0;
     int16_t y = 0;
+    int16_t initialY = 0;
     size_t W = 0;
     size_t H = 0;
 
@@ -656,6 +660,8 @@ class EditableText : public Scene {
 
     bool ctrl = false;
     bool shift = false;
+
+    ReadOnlyText infoBanner;
 
     void updateVertexArray() {
         W = window->getSize().x;
@@ -891,11 +897,6 @@ class EditableText : public Scene {
                 cursorR = text.size();
 
                 updateRequired = true;
-            } else if (k == sf::Keyboard::Scancode::S) {
-                // Save and return to Main Menu
-                // save(); // I will implement it latter
-                setSceneToReturnAt(SceneID::MainMenu);
-                exit();
             }
         }
         if (updateRequired) {
@@ -928,6 +929,7 @@ class EditableText : public Scene {
             updateVertexArray();
         } else if (event->getIf<sf::Event::Resized>()) {
             // reflow the text
+            infoBanner.manageResizedEvent();
             updateVertexArray();
         } else if (const auto *key = event->getIf<sf::Event::KeyPressed>()) {
             if (key->scancode == sf::Keyboard::Scancode::Escape) {
@@ -948,6 +950,31 @@ class EditableText : public Scene {
             if (k->scancode == sf::Keyboard::Scancode::LShift || k->scancode == sf::Keyboard::Scancode::RShift)
                 shift = false;
         }
+    }
+
+    void setupInfoBanner() {
+        const bool eng = Settings::getInstance().getIsEnglish();
+
+        std::string bannerText = eng
+            ? " ESC: Save Options\n------------------------------"
+            : " ESC: Opțiuni Salvare\n------------------------------";
+
+        size_t lineCount = std::ranges::count(bannerText, '\n') + 1;
+        const auto bannerHeight = static_cast<int16_t>(Settings::getInstance().pixel_size() * 9 * lineCount);
+
+        this->y = static_cast<int16_t>(initialY + bannerHeight);
+
+        infoBanner = ReadOnlyText{
+            window,
+            bannerText,
+            x,
+            initialY,
+            static_cast<uint8_t>(Settings::getInstance().pixel_size()),
+            window->getSize().x,
+            static_cast<size_t>(bannerHeight),
+            Settings::getInstance().text_color(),
+            false
+        };
     }
 
 public:
@@ -990,15 +1017,24 @@ public:
                           const size_t W_, const size_t H_, const SceneID sceneToReturnAt_)
         : Scene(window_, sceneToReturnAt_), text(std::move(initialText_)), currentFilePath(std::move(filePath)), x(x_),
           y(y_), W(W_), H(H_) {
+        setupInfoBanner();
         updateVertexArray();
     }
 
     void draw() override {
+        infoBanner.draw();
         window->draw(textVertexArray);
     }
 
     void begin() override {
+        setupInfoBanner();
         updateVertexArray();
+    }
+
+    void resume() override {
+        Scene::resume();
+        ctrl = false;
+        shift = false;
     }
 };
 
@@ -1733,13 +1769,26 @@ public:
 
             if (currentScene->hasFinished()) {
                 if (const auto *editor = dynamic_cast<EditableText *>(currentScene)) {
-                    if (std::ofstream output(editor->getFilePath()); output.is_open()) {
-                        output << editor->getText();
+                    bool eng = Settings::getInstance().getIsEnglish();
+                    std::string title = eng ? "Save Changes" : "Salvează Modificările";
+                    std::string message = eng ? "Save changes before closing?" : "Salvați modificările înainte de a închide?";
+
+                    auto box = pfd::message(title, message, pfd::choice::yes_no_cancel, pfd::icon::question);
+                    auto result = box.result();
+
+                    if (result == pfd::button::cancel) {
+                        currentScene->resume();
+                        continue;
+                    }
+
+                    if (result == pfd::button::yes) {
+                        if (std::ofstream output(editor->getFilePath()); output.is_open()) {
+                            output << editor->getText();
+                        }
                     }
                 }
 
                 updateBackground();
-
                 SceneID next = currentScene->getSceneToReturnAt();
                 currentScene->end();
 
