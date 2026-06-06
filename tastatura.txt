@@ -1,9 +1,0 @@
-Welcome to car++!
-You can use almost all the common controls shared by most text editors.
-This means:
-- shift+arrows = custom selection
-- ctrl+X = cut
-- ctrl+C = copy
-- ctrl+V = paste
-- ctrl+A = select all
-However, don't use ctrl+Z (undo), because it is not yet implemented (and probably it will never be).

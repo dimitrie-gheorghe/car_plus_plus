@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <exception>
 #include <stdexcept>
-#include "./include/portable-file-dialogs.h"
+#include "ext/portable-file-dialogs.h"
 
 class AppError : public std::runtime_error {
 public:
@@ -1546,13 +1546,14 @@ class SceneManager {
 
         if (action == SceneID::OpenFromDisk) {
             auto selection = pfd::open_file("Open Text File", ".", {"Text Files", "*.txt", "All Files", "*"}).result();
-            if (selection.empty()) return false;
+            if (selection.empty()) {
+                return false;
+            }
 
             targetPath = selection[0];
 
-            std::ifstream input(targetPath);
-            if (input.is_open()) {
-                content.assign((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
+            if (std::ifstream input(targetPath); input.is_open()) {
+                content.assign((std::istreambuf_iterator(input)), std::istreambuf_iterator<char>());
             } else {
                 pfd::message("Error", "Could not read the file.", pfd::choice::ok, pfd::icon::error).result();
                 return false;
@@ -1677,14 +1678,18 @@ class SceneManager {
         };
 
         while (std::getline(menuFile, line)) {
-            if (line.empty()) continue;
+            if (line.empty()) {
+                continue;
+            }
             if (line == "[Menu]") {
                 buildActiveMenu();
                 continue;
             }
 
             size_t delimiterPos = line.find(':');
-            if (delimiterPos == std::string::npos) continue;
+            if (delimiterPos == std::string::npos) {
+                continue;
+            }
 
             std::string key = line.substr(0, delimiterPos);
             std::string value = line.substr(delimiterPos + 1);
