@@ -18,8 +18,7 @@
 
 class AppError : public std::runtime_error {
 public:
-    explicit AppError(const std::string &msg) : std::runtime_error(msg) {
-    }
+    explicit AppError(const std::string &msg) : std::runtime_error(msg) {}
 
     friend std::ostream &operator<<(std::ostream &os, const AppError &err) {
         os << "AppError: " << err.what();
@@ -29,8 +28,7 @@ public:
 
 class ConfigurationError : public AppError {
 public:
-    ConfigurationError() : AppError("Error: Configuration file is malformed or missing.") {
-    }
+    ConfigurationError() : AppError("Error: Configuration file is malformed or missing.") {}
 
     friend std::ostream &operator<<(std::ostream &os, const ConfigurationError &err) {
         os << "ConfigurationError: " << err.what();
@@ -40,8 +38,7 @@ public:
 
 class AssetLoadError : public AppError {
 public:
-    AssetLoadError() : AppError("Error: Required assets could not be loaded.") {
-    }
+    AssetLoadError() : AppError("Error: Required assets could not be loaded.") {}
 
     friend std::ostream &operator<<(std::ostream &os, const AssetLoadError &err) {
         os << "AssetLoadError: " << err.what();
@@ -51,8 +48,7 @@ public:
 
 class SceneInitializationError : public AppError {
 public:
-    SceneInitializationError() : AppError("Error: Failed to initialize a required scene.") {
-    }
+    SceneInitializationError() : AppError("Error: Failed to initialize a required scene.") {}
 
     friend std::ostream &operator<<(std::ostream &os, const SceneInitializationError &err) {
         os << "SceneInitializationError: " << err.what();
@@ -240,7 +236,9 @@ public:
         return instance;
     }
 
-    virtual ~Settings() { storeSettings(); }
+    virtual ~Settings() {
+        storeSettings();
+    }
 
     void update(const bool resetDefaults = false) {
         if (resetDefaults) {
@@ -252,26 +250,69 @@ public:
         }
     }
 
-    [[nodiscard]] bool getIsEnglish() const { return isEnglish; }
-    void toggleLanguage() { isEnglish = !isEnglish; }
-    [[nodiscard]] int16_t window_w() const { return windowW; }
-    [[nodiscard]] int16_t window_h() const { return windowH; }
-    [[nodiscard]] int16_t pixel_size() const { return pixelSize; }
-    [[nodiscard]] sf::Color background_color() const { return backgroundColor; }
-    [[nodiscard]] sf::Color text_color() const { return textColor; }
-    [[nodiscard]] sf::Color cursor_color() const { return cursorColor; }
+    [[nodiscard]] bool getIsEnglish() const {
+        return isEnglish;
+    }
+    void toggleLanguage() {
+        isEnglish = !isEnglish;
+    }
+    [[nodiscard]] int16_t window_w() const {
+        return windowW;
+    }
+    [[nodiscard]] int16_t window_h() const {
+        return windowH;
+    }
+    [[nodiscard]] int16_t pixel_size() const {
+        return pixelSize;
+    }
+    [[nodiscard]] sf::Color background_color() const {
+        return backgroundColor;
+    }
+    [[nodiscard]] sf::Color text_color() const {
+        return textColor;
+    }
+    [[nodiscard]] sf::Color cursor_color() const {
+        return cursorColor;
+    }
 
-    void increase_pixel_size() { if (pixelSize + 1 < 15) pixelSize = static_cast<int16_t>(pixelSize + 1); }
-    void decrease_pixel_size() { if (pixelSize - 1 >= 1) pixelSize = static_cast<int16_t>(pixelSize - 1); }
-    void set_background_color(const sf::Color &background_color) { backgroundColor = background_color; }
-    void set_text_color(const sf::Color &text_color) { textColor = text_color; }
-    void set_cursor_color(const sf::Color &cursor_color) { cursorColor = cursor_color; }
+    void increase_pixel_size() {
+        if (pixelSize + 1 < 15) {
+            pixelSize = static_cast<int16_t>(pixelSize + 1);
+        }
+    }
+    void decrease_pixel_size() {
+        if (pixelSize - 1 >= 1) {
+            pixelSize = static_cast<int16_t>(pixelSize - 1);
+        }
+    }
+    void set_background_color(const sf::Color &background_color) {
+        backgroundColor = background_color;
+    }
+    void set_text_color(const sf::Color &text_color) {
+        textColor = text_color;
+    }
+    void set_cursor_color(const sf::Color &cursor_color) {
+        cursorColor = cursor_color;
+    }
 };
 
 enum class SceneID {
-    MainMenu = 0, SettingsMenu = 1, BackgroundSettings = 2, TextSettings = 3, CursorSettings = 4,
-    PixelSizeSettings = 5, RestoreDefaults = 6, Increase = 7, Decrease = 8, NewFile = 9,
-    OpenFromDisk = 10, AIMode = 11, TextEditor = 12, Exit = 13, Intro = 14, ToggleLanguage = 15
+    MainMenu = 0,
+    SettingsMenu = 1,
+    BackgroundSettings = 2,
+    TextSettings = 3,
+    CursorSettings = 4,
+    PixelSizeSettings = 5,
+    RestoreDefaults = 6,
+    Increase = 7,
+    Decrease = 8,
+    NewFile = 9,
+    OpenFromDisk = 10,
+    AIMode = 11,
+    TextEditor = 12,
+    Exit = 13,
+    Intro = 14,
+    ToggleLanguage = 15
 };
 
 class Scene {
@@ -290,8 +331,7 @@ protected:
     Scene(const Scene& other) = default;
     Scene(Scene&& other) noexcept
         : requestExit(other.requestExit), sceneToReturnAt(other.sceneToReturnAt),
-          defaultSceneToReturnAt(other.defaultSceneToReturnAt), window(other.window), event(other.event) {
-    }
+          defaultSceneToReturnAt(other.defaultSceneToReturnAt), window(other.window), event(other.event) {}
     Scene& operator=(const Scene& other) {
         if (this == &other) return *this;
         requestExit = other.requestExit;
@@ -333,7 +373,9 @@ public:
 
     virtual void begin() = 0;
 
-    virtual void resume() { requestExit = false; }
+    virtual void resume() {
+        requestExit = false;
+    }
 
     void end() {
         requestExit = false;
@@ -346,20 +388,24 @@ public:
         manageEvent();
     }
 
-    void setSceneToReturnAt(const SceneID id) { sceneToReturnAt = id; }
-    [[nodiscard]] SceneID getSceneToReturnAt() const { return sceneToReturnAt; }
-    [[nodiscard]] bool hasFinished() const { return requestExit; }
+    void setSceneToReturnAt(const SceneID id) {
+        sceneToReturnAt = id;
+    }
+    [[nodiscard]] SceneID getSceneToReturnAt() const {
+        return sceneToReturnAt;
+    }
+    [[nodiscard]] bool hasFinished() const {
+        return requestExit;
+    }
     void exit() { requestExit = true; }
 };
 
 class Button : public Scene {
     std::function<void()> action;
 
-    void reset() override {
-    }
+    void reset() override {}
 
-    void manageEvent() override {
-    }
+    void manageEvent() override {}
 
 public:
     [[nodiscard]] std::unique_ptr<Scene> clone() const override {
@@ -377,11 +423,9 @@ public:
     }
 
     Button(sf::RenderWindow &window, std::function<void()> func, const SceneID sceneToReturnAt_)
-        : Scene(window, sceneToReturnAt_), action(std::move(func)) {
-    }
+        : Scene(window, sceneToReturnAt_), action(std::move(func)) {}
 
-    void draw() override {
-    }
+    void draw() override {}
 
     void begin() override {
         action();
@@ -447,7 +491,9 @@ private:
                     formattedText[i] = ' ';
                     formattedText.insert(i, "   ");
                     i += 4;
-                } else { i++; }
+                } else {
+                    i++;
+                }
             }
             i = 0;
             const size_t size = formattedText.size();
@@ -459,15 +505,16 @@ private:
                     i++;
                     c = static_cast<int16_t>(c + charPoz);
                 }
-                if (i < size && formattedText[i] == '\n') i++;
+                if (i < size && formattedText[i] == '\n') {
+                    i++;
+                }
                 r = static_cast<int16_t>(r + charPoz);
             }
         }
     }
 
 public:
-    ReadOnlyText() : target(nullptr), x(0), y(0), pixelSize(5), W(0), H(0), lineWrappable(true) {
-    }
+    ReadOnlyText() : target(nullptr), x(0), y(0), pixelSize(5), W(0), H(0), lineWrappable(true) {}
 
     explicit ReadOnlyText(sf::RenderTarget *target_, std::string text_, const int16_t x_, const int16_t y_,
                           const uint8_t pixelSize_, const size_t W_, const size_t H_, const sf::Color color_,
@@ -477,10 +524,18 @@ public:
         updateVertexArray();
     }
 
-    void setTextColor(const sf::Color &color) { textColor = color; }
-    void setPixelSize(const uint8_t &pixel_size) { pixelSize = pixel_size; }
-    void draw() const { target->draw(textVertexArray); }
-    void refresh() { updateVertexArray(); }
+    void setTextColor(const sf::Color &color) {
+        textColor = color;
+    }
+    void setPixelSize(const uint8_t &pixel_size) {
+        pixelSize = pixel_size;
+    }
+    void draw() const {
+        target->draw(textVertexArray);
+    }
+    void refresh() {
+        updateVertexArray();
+    }
 
     void manageResizedEvent() {
         if (lineWrappable) {
@@ -552,9 +607,15 @@ class EditableText : public Scene {
                     formattedText.insert(i, " ");
                     i++;
                 }
-                if (old_i < formattedCursorL) formattedCursorL += i - old_i - 1;
-                if (old_i < formattedCursorR) formattedCursorR += i - old_i - 1;
-            } else { i++; }
+                if (old_i < formattedCursorL) {
+                    formattedCursorL += i - old_i - 1;
+                }
+                if (old_i < formattedCursorR) {
+                    formattedCursorR += i - old_i - 1;
+                }
+            } else {
+                i++;
+            }
         }
 
         if (formattedCursorR == formattedText.size()) formattedText += " ";
@@ -647,11 +708,11 @@ class EditableText : public Scene {
                 while (newCursor < text.size() && text[newCursor] != '\n') (newCursor)++;
             }
             if (newCursor < text.size() && l) {
-                (newCursor)++;
+                newCursor++;
                 l--;
             }
             while (newCursor < text.size() && text[newCursor] != '\n' && l) {
-                (newCursor)++;
+                newCursor++;
                 l--;
             }
         }
@@ -708,21 +769,26 @@ class EditableText : public Scene {
                 updateRequired = true;
             }
         }
-        if (updateRequired) updateVertexArray();
+        if (updateRequired) {
+            updateVertexArray();
+        }
     }
 
-    void reset() override {
-    }
+    void reset() override {}
 
     void manageEvent() override {
-        if (!event) return;
+        if (!event) {
+            return;
+        }
         if (const auto *enteredText = event->getIf<sf::Event::TextEntered>()) {
             if (const char c = static_cast<char>(enteredText->unicode); c == 8) {
                 if (!text.empty()) {
                     if (cursorL == cursorR && cursorL > 0) {
                         text.erase(--cursorL, 1);
                         cursorR = cursorL;
-                    } else deleteSelectedText();
+                    } else {
+                        deleteSelectedText();
+                    }
                 }
             } else if ((c >= 32 && c < 127) || c == '\n' || c == '\t') {
                 deleteSelectedText();
@@ -746,10 +812,12 @@ class EditableText : public Scene {
             manageKey(key->scancode);
             updateVertexArray();
         } else if (const auto *k = event->getIf<sf::Event::KeyReleased>()) {
-            if (k->scancode == sf::Keyboard::Scancode::LControl || k->scancode == sf::Keyboard::Scancode::RControl)
+            if (k->scancode == sf::Keyboard::Scancode::LControl || k->scancode == sf::Keyboard::Scancode::RControl) {
                 ctrl = false;
-            if (k->scancode == sf::Keyboard::Scancode::LShift || k->scancode == sf::Keyboard::Scancode::RShift)
+            }
+            if (k->scancode == sf::Keyboard::Scancode::LShift || k->scancode == sf::Keyboard::Scancode::RShift) {
                 shift = false;
+            }
         }
     }
 
@@ -758,7 +826,7 @@ class EditableText : public Scene {
         std::string bannerText = eng
                                      ? " ESC: Save Options\n------------------------------"
                                      : " ESC: Optiuni Salvare\n------------------------------";
-        size_t lineCount = std::ranges::count(bannerText, '\n') + 1;
+        const size_t lineCount = std::ranges::count(bannerText, '\n') + 1;
         const auto bannerHeight = static_cast<int16_t>(Settings::getInstance().pixel_size() * 9 * lineCount);
 
         this->y = static_cast<int16_t>(initialY + bannerHeight);
@@ -787,7 +855,9 @@ public:
     }
 
     EditableText &operator=(const EditableText &other) {
-        if (this == &other) return *this;
+        if (this == &other) {
+            return *this;
+        }
         Scene::operator=(other);
         text = other.text;
         currentFilePath = other.currentFilePath;
@@ -808,7 +878,9 @@ public:
     }
 
     EditableText &operator=(EditableText &&other) noexcept {
-        if (this == &other) return *this;
+        if (this == &other) {
+            return *this;
+        }
         Scene::operator=(std::move(other));
         text = std::move(other.text);
         currentFilePath = std::move(other.currentFilePath);
@@ -831,9 +903,15 @@ public:
 
     ~EditableText() override = default;
 
-    [[nodiscard]] std::filesystem::path getFilePath() const { return currentFilePath; }
-    [[nodiscard]] std::string getText() const { return text; }
-    [[nodiscard]] std::unique_ptr<Scene> clone() const override { return std::make_unique<EditableText>(*this); }
+    [[nodiscard]] std::filesystem::path getFilePath() const {
+        return currentFilePath;
+    }
+    [[nodiscard]] std::string getText() const {
+        return text;
+    }
+    [[nodiscard]] std::unique_ptr<Scene> clone() const override {
+        return std::make_unique<EditableText>(*this);
+    }
 
     friend std::ostream &operator<<(std::ostream &os, const EditableText &obj) {
         return obj.print(os);
@@ -887,6 +965,7 @@ class Greet : public Scene {
         formerWindowW = window.getSize().x;
         formerWindowH = window.getSize().y;
         formerPos = window.getPosition();
+
         sf::Vector2i desiredPos;
         desiredPos.x = static_cast<int>(formerPos.x + (window.getSize().x - W) / 2);
         desiredPos.y = static_cast<int>(formerPos.y + (window.getSize().y - H) / 2);
@@ -894,6 +973,7 @@ class Greet : public Scene {
                        sf::State::Windowed);
         window.setPosition(desiredPos);
         window.setFramerateLimit(30);
+
     }
 
     void resetProperties() {
@@ -908,8 +988,7 @@ class Greet : public Scene {
         resetProperties();
     }
 
-    void manageEvent() override {
-    }
+    void manageEvent() override {}
 
 public:
     [[nodiscard]] std::unique_ptr<Scene> clone() const override { return std::make_unique<Greet>(*this); }
@@ -956,7 +1035,9 @@ public:
         greeting.moveAt(x, 0);
     }
 
-    void begin() override { setProperties(); }
+    void begin() override {
+        setProperties();
+    }
 };
 
 class TilePanel : public Scene {
@@ -987,7 +1068,9 @@ class TilePanel : public Scene {
         const std::filesystem::path dataPath = sourcePath / "assets" / "tilePanelData.txt";
 
         std::ifstream input(dataPath);
-        if (!input.is_open()) throw AssetLoadError();
+        if (!input.is_open()) {
+            throw AssetLoadError();
+        }
         input >> rows >> columns;
 
         cellW = static_cast<int16_t>(window.getSize().x / (2 * columns));
@@ -1029,7 +1112,9 @@ class TilePanel : public Scene {
         }
     }
 
-    void manageResizedEvent() { titleObject.manageResizedEvent(); }
+    void manageResizedEvent() {
+        titleObject.manageResizedEvent();
+    }
 
     void updateCursor() {
         VertexArrayUtility::moveAt(cursorVertexArray, static_cast<int16_t>(x + cellW * cursorX),
@@ -1042,7 +1127,9 @@ class TilePanel : public Scene {
     }
 
     void manageEvent() override {
-        if (!event) return;
+        if (!event) {
+            return;
+        }
         if (event->is<sf::Event::Resized>()) {
             manageResizedEvent();
             return;
@@ -1061,9 +1148,15 @@ class TilePanel : public Scene {
                     if (const sf::Color newColor = colors[cursorX + cursorY * columns];
                         newColor != Settings::getInstance().background_color() && newColor != Settings::getInstance().
                         text_color() && newColor != Settings::getInstance().cursor_color()) {
-                        if (target == 0) Settings::getInstance().set_background_color(newColor);
-                        if (target == 1) Settings::getInstance().set_text_color(newColor);
-                        if (target == 2) Settings::getInstance().set_cursor_color(newColor);
+                        if (target == 0) {
+                            Settings::getInstance().set_background_color(newColor);
+                        }
+                        if (target == 1) {
+                            Settings::getInstance().set_text_color(newColor);
+                        }
+                        if (target == 2) {
+                            Settings::getInstance().set_cursor_color(newColor);
+                        }
                         Settings::getInstance().update();
                     }
                     setSceneToReturnAt(SceneID::SettingsMenu);
@@ -1075,16 +1168,26 @@ class TilePanel : public Scene {
                     return;
                 default: break;
             }
-            if (cursorX < 0) cursorX = 0;
-            if (cursorY < 0) cursorY = 0;
-            if (cursorX >= columns) cursorX = static_cast<int8_t>(columns - 1);
-            if (cursorY >= rows) cursorY = static_cast<int8_t>(rows - 1);
+            if (cursorX < 0) {
+                cursorX = 0;
+            }
+            if (cursorY < 0) {
+                cursorY = 0;
+            }
+            if (cursorX >= columns) {
+                cursorX = static_cast<int8_t>(columns - 1);
+            }
+            if (cursorY >= rows) {
+                cursorY = static_cast<int8_t>(rows - 1);
+            }
             updateCursor();
         }
     }
 
 public:
-    [[nodiscard]] std::unique_ptr<Scene> clone() const override { return std::make_unique<TilePanel>(*this); }
+    [[nodiscard]] std::unique_ptr<Scene> clone() const override {
+        return std::make_unique<TilePanel>(*this);
+    }
 
     friend std::ostream &operator<<(std::ostream &os, const TilePanel &obj) {
         return obj.print(os);
@@ -1138,11 +1241,12 @@ class Menu : public Scene {
                                             Settings::getInstance().cursor_color());
     }
 
-    void reset() override {
-    }
+    void reset() override {}
 
     void manageEvent() override {
-        if (!event) return;
+        if (!event) {
+            return;
+        }
         if (event->is<sf::Event::Resized>()) {
             text.manageResizedEvent();
             updateCursor();
@@ -1153,13 +1257,17 @@ class Menu : public Scene {
                 case sf::Keyboard::Scancode::Up:
                 case sf::Keyboard::Scancode::Left:
                     cursor--;
-                    if (cursor < 0) cursor = len - 1;
+                    if (cursor < 0) {
+                        cursor = len - 1;
+                    }
                     updateCursor();
                     break;
                 case sf::Keyboard::Scancode::Down:
                 case sf::Keyboard::Scancode::Right:
                     cursor++;
-                    if (cursor >= len) cursor = 0;
+                    if (cursor >= len) {
+                        cursor = 0;
+                    }
                     updateCursor();
                     break;
                 case sf::Keyboard::Scancode::Enter:
@@ -1168,7 +1276,8 @@ class Menu : public Scene {
                         exit();
                     }
                     break;
-                case sf::Keyboard::Scancode::Escape: exit();
+                case sf::Keyboard::Scancode::Escape:
+                    exit();
                     break;
                 default: break;
             }
@@ -1176,7 +1285,9 @@ class Menu : public Scene {
     }
 
 public:
-    [[nodiscard]] std::unique_ptr<Scene> clone() const override { return std::make_unique<Menu>(*this); }
+    [[nodiscard]] std::unique_ptr<Scene> clone() const override {
+        return std::make_unique<Menu>(*this);
+    }
 
     friend std::ostream &operator<<(std::ostream &os, const Menu &obj) {
         return obj.print(os);
@@ -1217,8 +1328,9 @@ public:
 class SceneManager {
     std::unordered_map<SceneID, std::unique_ptr<Scene> > scenes;
     sf::VertexArray background;
-    sf::RenderWindow &window;
     Scene *currentScene = nullptr;
+
+    sf::RenderWindow window;
 
     void updateBackground() {
         background.clear();
@@ -1232,7 +1344,9 @@ class SceneManager {
         std::string content;
         if (action == SceneID::OpenFromDisk) {
             auto selection = pfd::open_file("Open Text File", ".", {"Text Files", "*.txt", "All Files", "*"}).result();
-            if (selection.empty()) return false;
+            if (selection.empty()) {
+                return false;
+            }
             targetPath = selection[0];
             if (std::ifstream input(targetPath); input.is_open()) {
                 content.assign((std::istreambuf_iterator(input)), std::istreambuf_iterator<char>());
@@ -1242,7 +1356,9 @@ class SceneManager {
             }
         } else if (action == SceneID::NewFile) {
             auto destination = pfd::save_file("Create New File", ".", {"Text Files", "*.txt"}).result();
-            if (destination.empty()) return false;
+            if (destination.empty()) {
+                return false;
+            }
             targetPath = destination;
         }
         scenes[SceneID::TextEditor] = std::make_unique<EditableText>(window, content, targetPath, 0, 0,
@@ -1251,13 +1367,17 @@ class SceneManager {
         return true;
     }
 
-    [[nodiscard]] Scene *resolve(const SceneID id) const {
+    [[nodiscard]] Scene *resolve(const SceneID id) {
         if (id == SceneID::Exit) {
             window.close();
             return nullptr;
         }
-        if (id == SceneID::NewFile || id == SceneID::OpenFromDisk) return nullptr;
-        if (scenes.contains(id)) return scenes.at(id).get();
+        if (id == SceneID::NewFile || id == SceneID::OpenFromDisk) {
+            return nullptr;
+        }
+        if (scenes.contains(id)) {
+            return scenes.at(id).get();
+        }
         throw SceneInitializationError();
     }
 
@@ -1320,7 +1440,9 @@ class SceneManager {
         const std::filesystem::path sourcePath = SOURCE_DIR;
         std::string filename = eng ? "menu_eng.txt" : "menu_ro.txt";
         std::ifstream menuFile(sourcePath / "config" / filename);
-        if (!menuFile.is_open()) throw ConfigurationError();
+        if (!menuFile.is_open()) {
+            throw ConfigurationError();
+        }
 
         std::string line;
         int currentMenuID = -1;
@@ -1328,8 +1450,10 @@ class SceneManager {
         std::string menuText;
         std::vector<SceneID> actions;
         auto buildActiveMenu = [&] {
-            if (currentMenuID == -1) return;
-            if (auto menuID = static_cast<SceneID>(currentMenuID); menuID == SceneID::Intro) {
+            if (currentMenuID == -1) {
+                return;
+            }
+            if (const auto menuID = static_cast<SceneID>(currentMenuID); menuID == SceneID::Intro) {
                 scenes[menuID] = std::make_unique<Greet>(window, menuText, static_cast<SceneID>(returnID));
             } else {
                 scenes[menuID] = std::make_unique<Menu>(window, menuText, actions, static_cast<SceneID>(returnID));
@@ -1340,20 +1464,30 @@ class SceneManager {
         };
 
         while (std::getline(menuFile, line)) {
-            if (line.empty()) continue;
+            if (line.empty()) {
+                continue;
+            }
             if (line == "[Menu]") {
                 buildActiveMenu();
                 continue;
             }
             size_t delimiterPos = line.find(':');
-            if (delimiterPos == std::string::npos) continue;
+            if (delimiterPos == std::string::npos) {
+                continue;
+            }
             std::string key = line.substr(0, delimiterPos);
             std::string value = line.substr(delimiterPos + 1);
             value.erase(0, value.find_first_not_of(" \t"));
 
-            if (key == "ID") currentMenuID = std::stoi(value);
-            else if (key == "Return") returnID = std::stoi(value);
-            else if (key == "Title") menuText = value;
+            if (key == "ID") {
+                currentMenuID = std::stoi(value);
+            }
+            else if (key == "Return") {
+                returnID = std::stoi(value);
+            }
+            else if (key == "Title") {
+                menuText = value;
+            }
             else if (key == "Item") {
                 if (size_t arrowPos = value.find("->"); arrowPos != std::string::npos) {
                     std::string label = value.substr(0, arrowPos);
@@ -1371,28 +1505,34 @@ class SceneManager {
 public:
     friend std::ostream &operator<<(std::ostream &os, const SceneManager &obj) {
         os << "\n======================================================================="
-                << "\nSceneManager Active Stack Dump"
+                << "\nThis is the SceneManager class"
                 << "\n======================================================================="
-                << "\nTarget Context Render Window: " << &obj.window
+                << "\nWindow: " << &obj.window
                 << "\n-----------------------------------------------------------------------"
-                << "\nCurrent Focused Display Scene:\n  ";
+                << "\nCurrent scene:\n  ";
         if (obj.currentScene) {
             os << *obj.currentScene;
         } else {
             os << "None";
         }
         os << "\n-----------------------------------------------------------------------"
-                << "\nRegistered Virtual Framework Map Cluster:";
+                << "\nScenes:";
         for (const auto &scene: obj.scenes | std::views::values) {
             os << "\n  -> ";
-            if (scene) os << *scene;
-            else os << "Null Scene allocation pointer";
+            if (scene) {
+                os << *scene;
+            }
+            else os << "nullptr";
         }
         os << "\n=======================================================================";
         return os;
     }
 
-    explicit SceneManager(sf::RenderWindow &window_) : window(window_) {
+    explicit SceneManager() {
+        window.create(sf::VideoMode({static_cast<uint16_t>(Settings::getInstance().window_w()), static_cast<uint16_t>(Settings::getInstance().window_h())}), "car_plus_plus", sf::Style::Default, sf::State::Windowed);
+        std::cout << "The window was created successfully\n";
+        window.setFramerateLimit(10);
+
         background.setPrimitiveType(sf::PrimitiveType::Triangles);
         updateBackground();
         createButtons();
@@ -1401,7 +1541,9 @@ public:
     }
 
     void run() {
-        if (currentScene) currentScene->begin();
+        if (currentScene) {
+            currentScene->begin();
+        }
         while (window.isOpen()) {
             while (auto e = window.pollEvent()) {
                 if (e->is<sf::Event::Closed>()) {
@@ -1409,8 +1551,10 @@ public:
                     return;
                 }
                 if (const auto *resized = e->getIf<sf::Event::Resized>()) {
+
                     sf::FloatRect visibleArea({0.f, 0.f}, sf::Vector2f(resized->size));
                     window.setView(sf::View(visibleArea));
+
                     updateBackground();
                 }
                 currentScene->manageEvent(*e);
@@ -1450,7 +1594,9 @@ public:
 
                 Scene *nextPtr = resolve(next);
                 if (!nextPtr) {
-                    if (!window.isOpen()) return;
+                    if (!window.isOpen()) {
+                        return;
+                    }
                     continue;
                 }
                 currentScene = nextPtr;
@@ -1462,12 +1608,7 @@ public:
 
 int main() {
     try {
-        sf::RenderWindow window;
-        window.create(sf::VideoMode({800, 700}), "car_plus_plus", sf::Style::Default, sf::State::Windowed);
-        std::cout << "The window was created successfully\n";
-        window.setFramerateLimit(10);
-
-        SceneManager sm(window);
+        SceneManager sm{};
 
         std::cout << "Afisare Polymorphic Composition Output:\n" << sm << "\n";
 
