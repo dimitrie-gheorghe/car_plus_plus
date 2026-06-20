@@ -5,8 +5,7 @@
 #include "FontManager.h"
 #include <filesystem>
 #include <fstream>
-#include "../ext/portable-file-dialogs.h"
-#include "../include/AppExceptions.h"
+#include "AppExceptions.h"
 
 FontManager::FontManager() {
     const std::filesystem::path sourcePath = SOURCE_DIR;
@@ -29,7 +28,7 @@ const FontManager &FontManager::getInstance() {
     return instance;
 }
 
-[[nodiscard]] uint8_t FontManager::getByte(const size_t index) const {
+uint8_t FontManager::getByte(const size_t index) const {
     return ascii[index];
 }
 

@@ -6,7 +6,6 @@
 #define OOP_FONTMANAGER_H
 
 #include <filesystem>
-#include "../ext/portable-file-dialogs.h"
 
 class FontManager {
     uint8_t ascii[8 * 95]{};
