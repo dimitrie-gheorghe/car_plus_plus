@@ -5,7 +5,6 @@
 #ifndef OOP_SCENEMANAGER_H
 #define OOP_SCENEMANAGER_H
 
-#include <filesystem>
 #include <memory>
 #include <unordered_map>
 #include <SFML/Graphics.hpp>

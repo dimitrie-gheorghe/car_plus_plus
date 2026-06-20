@@ -6,7 +6,6 @@
 #define OOP_SETTINGS_H
 
 #include <filesystem>
-#include <sstream>
 #include <SFML/Graphics.hpp>
 
 class Settings {

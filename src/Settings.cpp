@@ -12,7 +12,6 @@
 #include <ostream>
 #include <ranges>
 #include <string>
-#include <sstream>
 #include <SFML/Graphics.hpp>
 #include "../include/AppExceptions.h"
 

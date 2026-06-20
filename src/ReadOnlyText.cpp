@@ -7,7 +7,6 @@
 #include <fstream>
 #include <ranges>
 #include <string>
-#include <sstream>
 #include <SFML/Graphics.hpp>
 #include <algorithm>
 #include "../ext/portable-file-dialogs.h"

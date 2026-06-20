@@ -6,11 +6,8 @@
 #define OOP_READONLYTEXT_H
 
 #include <filesystem>
-#include <ranges>
 #include <string>
-#include <sstream>
 #include <SFML/Graphics.hpp>
-#include "../ext/portable-file-dialogs.h"
 
 class ReadOnlyText {
     sf::RenderTarget *target;
