@@ -28,7 +28,7 @@ const FontManager &FontManager::getInstance() {
     return instance;
 }
 
-uint8_t FontManager::getByte(const size_t index) const {
+[[nodiscard]] uint8_t FontManager::getByte(const size_t index) const {
     return ascii[index];
 }
 

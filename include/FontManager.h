@@ -17,7 +17,7 @@ public:
 
     static const FontManager &getInstance();
 
-    [[nodiscard]] uint8_t getByte(const size_t index) const;
+    [[nodiscard]] uint8_t getByte(size_t index) const;
 };
 
 
