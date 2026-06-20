@@ -25,15 +25,11 @@ FontManager::FontManager() {
 }
 
 const FontManager &FontManager::getInstance() {
-    // Actually i use it (take a look at the VertexArrayUtility::insertChar in VertexArrayUtility.cpp)
-    // I don't know why the check gets confused
     static FontManager instance;
     return instance;
 }
 
-uint8_t FontManager::getByte(const size_t index) const {
-    // Actually i use it (take a look at the VertexArrayUtility::insertChar in VertexArrayUtility.cpp)
-    // I don't know why the check gets confused
+[[nodiscard]] uint8_t FontManager::getByte(const size_t index) const {
     return ascii[index];
 }
 

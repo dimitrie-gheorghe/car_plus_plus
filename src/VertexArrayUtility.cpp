@@ -43,9 +43,7 @@ void VertexArrayUtility::insertChar(sf::VertexArray &v, const char c, const int1
             offset = (c - '!') * 8;
         }
         for (uint16_t i = 0; i < 8; i++) {
-            const FontManager &fontManager = FontManager::getInstance();
-            uint8_t line = fontManager.getByte(offset + i);
-            //uint8_t line = FontManager::getInstance().getByte(offset + i);
+            uint8_t line = FontManager::getInstance().getByte(offset + i);
             for (int16_t j = 0; j < 8; j++) {
                 const uint8_t _ = line & 1;
                 line >>= 1;
