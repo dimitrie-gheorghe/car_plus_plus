@@ -23,13 +23,17 @@ FontManager::FontManager() {
     }
     input.close();
 }
-
+// cppcheck-suppress unusedFunction
 const FontManager &FontManager::getInstance() {
+    // Actually i use it (take a look at the VertexArrayUtility::insertChar in VertexArrayUtility.cpp)
+    // I don't know why the check gets confused
     static FontManager instance;
     return instance;
 }
-
+// cppcheck-suppress unusedFunction
 [[nodiscard]] uint8_t FontManager::getByte(const size_t index) const {
+    // Actually i use it (take a look at the VertexArrayUtility::insertChar in VertexArrayUtility.cpp)
+    // I don't know why the check gets confused
     return ascii[index];
 }
 
