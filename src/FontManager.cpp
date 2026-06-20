@@ -2,10 +2,10 @@
 // Created by dimitrie on 20.06.2026.
 //
 
-#include "FontManager.h"
+#include "../include/FontManager.h"
 #include <filesystem>
 #include <fstream>
-#include "AppExceptions.h"
+#include "../include/AppExceptions.h"
 
 FontManager::FontManager() {
     const std::filesystem::path sourcePath = SOURCE_DIR;

@@ -2,11 +2,11 @@
 // Created by dimitrie on 20.06.2026.
 //
 
-#include "VertexArrayUtility.h"
+#include "../include/VertexArrayUtility.h"
 #include <fstream>
 #include <sstream>
 #include <SFML/Graphics.hpp>
-#include "FontManager.h"
+#include "../include/FontManager.h"
 
 void VertexArrayUtility::insertRectangle(sf::VertexArray &v, const int16_t x, const int16_t y, const int16_t w,
                                          const int16_t h, const sf::Color color) {
