@@ -2,7 +2,7 @@
 // Created by dimitrie on 20.06.2026.
 //
 
-#include "../include/FontManager.h"
+#include "FontManager.h"
 #include <filesystem>
 #include <fstream>
 #include "../ext/portable-file-dialogs.h"
