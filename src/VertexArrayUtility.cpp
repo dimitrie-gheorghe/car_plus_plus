@@ -43,7 +43,6 @@ void VertexArrayUtility::insertChar(sf::VertexArray &v, const char c, const int1
             offset = (c - '!') * 8;
         }
         for (uint16_t i = 0; i < 8; i++) {
-            //uint8_t line = FontManager::getInstance().getByte(offset + i);
             // Here are the uses of the FontManager::getInstance() and FontManager::getByte() that are not seen by cppCheck
             const FontManager &fontManager = FontManager::getInstance();
             uint8_t line = fontManager.getByte(offset + i);

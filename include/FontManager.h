@@ -15,21 +15,9 @@ class FontManager {
 public:
     friend std::ostream &operator<<(std::ostream &os, const FontManager &);
 
-    // static const FontManager &getInstance();
-    //
-    // [[nodiscard]] uint8_t getByte(size_t index) const;
+    static const FontManager &getInstance();
 
-    // The ultimate solution: define the functions inside the header
-    static const FontManager &getInstance() {
-        // Actually I use it (look at VertexArrayUtility::insertChar() in VertexArrayUtility.cpp) but the cppCheck gives me a false positive
-        static FontManager instance;
-        return instance;
-    }
-
-    [[nodiscard]] uint8_t getByte(const size_t index) const {
-        // Actually I use it (look at VertexArrayUtility::insertChar() in VertexArrayUtility.cpp) but the cppCheck gives me a false positive
-        return ascii[index];
-    }
+    [[nodiscard]] uint8_t getByte(size_t index) const;
 };
 
 #endif //OOP_FONTMANAGER_H
