@@ -23,16 +23,16 @@ FontManager::FontManager() {
     input.close();
 }
 
-[[maybe_unused]] const FontManager &FontManager::getInstance() {
-    // Actually I use it (look at VertexArrayUtility::insertChar() in VertexArrayUtility.cpp) but the cppCheck gives me a false positive
-    static FontManager instance;
-    return instance;
-}
-
-[[maybe_unused]] [[nodiscard]] uint8_t FontManager::getByte(const size_t index) const {
-    // Actually I use it (look at VertexArrayUtility::insertChar() in VertexArrayUtility.cpp) but the cppCheck gives me a false positive
-    return ascii[index];
-}
+// [[maybe_unused]] const FontManager &FontManager::getInstance() {
+//     // Actually I use it (look at VertexArrayUtility::insertChar() in VertexArrayUtility.cpp) but the cppCheck gives me a false positive
+//     static FontManager instance;
+//     return instance;
+// }
+//
+// [[maybe_unused]] [[nodiscard]] uint8_t FontManager::getByte(const size_t index) const {
+//     // Actually I use it (look at VertexArrayUtility::insertChar() in VertexArrayUtility.cpp) but the cppCheck gives me a false positive
+//     return ascii[index];
+// }
 
 std::ostream &operator<<(std::ostream &os, const FontManager &) {
     os << "FontManager (Singleton Instance holding custom ASCII definitions)";
