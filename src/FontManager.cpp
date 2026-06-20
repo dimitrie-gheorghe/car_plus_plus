@@ -23,12 +23,14 @@ FontManager::FontManager() {
     input.close();
 }
 
-const FontManager &FontManager::getInstance() {
+[[maybe_unused]] const FontManager &FontManager::getInstance() {
+    // Actually I use it (look at VertexArrayUtility::insertChar() in VertexArrayUtility.cpp) but the cppCheck gives me a false positive
     static FontManager instance;
     return instance;
 }
 
-[[nodiscard]] uint8_t FontManager::getByte(const size_t index) const {
+[[maybe_unused]] [[nodiscard]] uint8_t FontManager::getByte(const size_t index) const {
+    // Actually I use it (look at VertexArrayUtility::insertChar() in VertexArrayUtility.cpp) but the cppCheck gives me a false positive
     return ascii[index];
 }
 
