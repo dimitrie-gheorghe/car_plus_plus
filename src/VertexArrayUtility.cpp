@@ -10,6 +10,7 @@
 
 void VertexArrayUtility::insertRectangle(sf::VertexArray &v, const int16_t x, const int16_t y, const int16_t w,
                                          const int16_t h, const sf::Color color) {
+
     v.append({{static_cast<float>(x), static_cast<float>(y)}, color, {0.0f, 0.0f}});
     v.append({{static_cast<float>(x + w), static_cast<float>(y)}, color, {0.0f, 0.0f}});
     v.append({{static_cast<float>(x), static_cast<float>(y + h)}, color, {0.0f, 0.0f}});
