@@ -31,7 +31,7 @@ const FontManager &FontManager::getInstance() {
     return instance;
 }
 
-[[nodiscard]] uint8_t FontManager::getByte(const size_t index) const {
+uint8_t FontManager::getByte(const size_t index) const {
     // Actually i use it (take a look at the VertexArrayUtility::insertChar in VertexArrayUtility.cpp)
     // I don't know why the check gets confused
     return ascii[index];
