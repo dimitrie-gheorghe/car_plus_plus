@@ -20,5 +20,4 @@ public:
     [[nodiscard]] uint8_t getByte(size_t index) const;
 };
 
-
 #endif //OOP_FONTMANAGER_H
