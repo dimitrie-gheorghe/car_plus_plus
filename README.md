@@ -1,5 +1,3 @@
-# Aici am și t1 și t2 (lipsește separarea în fișiere, adică am inclus aici maximul astfel încât tema încă să se poată încadra la t1). Am făcut separarea pe branch-ul tema2 (cu toate bifele). Nu am făcut direct aici pentru că nu am notă pe t1 (nici tag) și am înțeles că mai întâi trebuie notată t1 și apoi făcută t2. Dacă t1 e în regulă, pur și simplu dau merge la branch-uri. Vreau să întreb dacă mai trebuie să fac un commit separat cu derivata 4, pentru că eu am deja 5 derivate din Scene (Button, EditableText, Greet, Menu, TilePanel)
-
 # car_plus_plus
 car_plus_plus is a very low-level text editor. "car" stands for the Romanian "caracter" (English: character).
 
