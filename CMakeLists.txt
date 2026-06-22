@@ -1,16 +1,10 @@
 cmake_minimum_required(VERSION 3.26)
 
-
 # NOTE: update executable name in .github/workflows/cmake.yml:25 when changing executable name in this file
-# for now, the project name is used as the executable name
 set(MAIN_PROJECT_NAME "oop")
 set(MAIN_EXECUTABLE_NAME "${MAIN_PROJECT_NAME}")
 
-
 project(${MAIN_PROJECT_NAME})
-# set(CMAKE_PROJECT_VERSION_MAJOR 0)
-# set(CMAKE_PROJECT_VERSION_MINOR 0)
-# set(CMAKE_PROJECT_VERSION_PATCH 1)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -30,18 +24,12 @@ set(FETCHCONTENT_QUIET OFF CACHE INTERNAL "Override verbose output" FORCE)
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON CACHE INTERNAL "Override update strategy" FORCE)
 set(SFML_WARNINGS_AS_ERRORS OFF)
 
-# NOTE: Also update SFML_VERSION and other env vars used for caching in
-#     - .github/actions/configure-cmake/action.yml
-#     - .github/workflows/cmake.yml
 FetchContent_Declare(
-    SFML
-    GIT_REPOSITORY https://github.com/SFML/SFML.git
-    # renovate: datasource=github-tags depName=SFML/SFML versioning=loose
-    GIT_TAG        3.0.2
-    # renovate: depName=SFML/SFML
-    # GIT_TAG        0fa201c969e48ecc253581c5841ce73f44d42f49 # 3.0.2
-    GIT_SHALLOW    1  # works only with branches or tags, not with arbitrary commit hashes
-    GIT_PROGRESS   ON
+        SFML
+        GIT_REPOSITORY https://github.com/SFML/SFML.git
+        GIT_TAG        3.0.2
+        GIT_SHALLOW    1
+        GIT_PROGRESS   ON
 )
 
 FetchContent_MakeAvailable(SFML)
@@ -49,7 +37,6 @@ FetchContent_MakeAvailable(SFML)
 ###############################################################################
 
 # external dependencies with find_package
-
 find_package(Threads REQUIRED)
 if(APPLE)
 elseif(UNIX)
@@ -58,61 +45,25 @@ endif()
 
 ###############################################################################
 
-# NOTE: update executable name in .github/workflows/cmake.yml:25 when changing name here
+file(GLOB_RECURSE SOURCE_FILES "src/*.cpp")
+
 add_executable(${MAIN_EXECUTABLE_NAME}
-    main.cpp
-        src/Settings.cpp
-        include/Settings.h
-        src/SceneManager.cpp
-        include/SceneManager.h
-        src/AppExceptions.cpp
-        include/AppExceptions.h
-        src/FontManager.cpp
-        include/FontManager.h
-        src/VertexArrayUtility.cpp
-        include/VertexArrayUtility.h
-        include/SceneID.h
-        src/Scene.cpp
-        include/Scene.h
-        src/Button.cpp
-        include/Button.h
-        src/ReadOnlyText.cpp
-        include/ReadOnlyText.h
-        src/EditableText.cpp
-        include/EditableText.h
-        src/Greet.cpp
-        include/Greet.h
-        src/TilePanel.cpp
-        include/TilePanel.h
-        src/Menu.cpp
-        include/Menu.h
-)
-target_sources(${MAIN_EXECUTABLE_NAME}
-    PRIVATE
-
-)
-target_compile_definitions(${MAIN_EXECUTABLE_NAME} PRIVATE
-        SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+        main.cpp
+        ${SOURCE_FILES}
 )
 
-# NOTE: Add all defined targets (e.g. executables, libraries, etc. )
-# NOTE: RUN_SANITIZERS is optional, if it's not present it will default to true
 set_compiler_flags(RUN_SANITIZERS ${USE_ASAN} TARGET_NAMES ${MAIN_EXECUTABLE_NAME})
-# set_compiler_flags(TARGET_NAMES ${MAIN_EXECUTABLE_NAME} ${FOO} ${BAR})
-# where ${FOO} and ${BAR} represent additional executables or libraries
-# you want to compile with the set compiler flags
 
 ###############################################################################
 
-# use SYSTEM so cppcheck and clang-tidy do not report warnings from these directories
 target_include_directories(${MAIN_EXECUTABLE_NAME} PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
 )
 target_include_directories(${MAIN_EXECUTABLE_NAME} SYSTEM PRIVATE
-    ext
+        ext
 )
 target_link_libraries(${MAIN_EXECUTABLE_NAME} PRIVATE
-    SFML::Graphics SFML::Window SFML::System Threads::Threads
+        SFML::Graphics SFML::Window SFML::System Threads::Threads
 )
 
 if(APPLE)
@@ -122,17 +73,38 @@ endif()
 
 ###############################################################################
 
-# copy binaries to "bin" folder; these are uploaded as artifacts on each release
-# DESTINATION_DIR is set as "bin" in cmake/Options.cmake:6
+# 1. COPIERE RESURSE PENTRU RULARE LOCALĂ (CLion / Debug)
+add_custom_command(TARGET ${MAIN_EXECUTABLE_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/assets"
+        "$<TARGET_FILE_DIR:${MAIN_EXECUTABLE_NAME}>/assets"
+)
+
+add_custom_command(TARGET ${MAIN_EXECUTABLE_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/config"
+        "$<TARGET_FILE_DIR:${MAIN_EXECUTABLE_NAME}>/config"
+)
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tastatura.txt")
+    add_custom_command(TARGET ${MAIN_EXECUTABLE_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_CURRENT_SOURCE_DIR}/tastatura.txt"
+            "$<TARGET_FILE_DIR:${MAIN_EXECUTABLE_NAME}>/tastatura.txt"
+    )
+endif()
+
+###############################################################################
+
+# 2. COPIERE RESURSE PENTRU ARHIVA DE RELEASE
 install(TARGETS ${MAIN_EXECUTABLE_NAME} DESTINATION ${DESTINATION_DIR})
+install(DIRECTORY assets DESTINATION ${DESTINATION_DIR})
+install(DIRECTORY config DESTINATION ${DESTINATION_DIR})
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tastatura.txt")
+    install(FILES tastatura.txt DESTINATION ${DESTINATION_DIR})
+endif()
+
 if(APPLE)
     install(FILES launcher.command DESTINATION ${DESTINATION_DIR})
 endif()
-
-copy_files(FILES tastatura.txt ./assets/font.txt ./assets/tilePanelData.txt DIRECTORY assets COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
-copy_files(
-        FILES ./config/settings.txt ./config/menu_eng.txt ./config/menu_ro.txt
-        DIRECTORY config
-        COPY_TO_DESTINATION
-        TARGET_NAME ${MAIN_EXECUTABLE_NAME}
-)

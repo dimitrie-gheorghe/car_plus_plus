@@ -8,8 +8,7 @@
 #include "../include/AppExceptions.h"
 
 FontManager::FontManager() {
-    const std::filesystem::path sourcePath = SOURCE_DIR;
-    const std::filesystem::path fontPath = sourcePath / "assets" / "font.txt";
+    const std::filesystem::path fontPath = std::filesystem::current_path() / "assets" / "font.txt";
 
     std::ifstream input(fontPath);
     if (!input.is_open()) {

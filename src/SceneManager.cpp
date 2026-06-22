@@ -133,9 +133,10 @@ void SceneManager::createScenes() {
     scenes[SceneID::CursorSettings] = std::make_unique<TilePanel>(window, cursorTitle, 2, SceneID::SettingsMenu);
     scenes[SceneID::AIMode] = std::make_unique<Greet>(window, aiTitle, SceneID::Exit);
 
-    const std::filesystem::path sourcePath = SOURCE_DIR;
     std::string filename = eng ? "menu_eng.txt" : "menu_ro.txt";
-    std::ifstream menuFile(sourcePath / "config" / filename);
+    const std::filesystem::path menuPath = std::filesystem::current_path() / "config" / filename;
+    std::ifstream menuFile(menuPath);
+
     if (!menuFile.is_open()) {
         throw ConfigurationError();
     }

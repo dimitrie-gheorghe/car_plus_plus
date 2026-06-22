@@ -1,7 +1,9 @@
+# Aici am și t1 și t2 (lipsește separarea în fișiere, adică am inclus aici maximul astfel încât tema încă să se poată încadra la t1). Am făcut separarea pe branch-ul tema2 (cu toate bifele). Nu am făcut direct aici pentru că nu am notă pe t1 (nici tag) și am înțeles că mai întâi trebuie notată t1 și apoi făcută t2. Dacă t1 e în regulă, pur și simplu dau merge la branch-uri. Vreau să întreb dacă mai trebuie să fac un commit separat cu derivata 4, pentru că eu am deja 5 derivate din Scene (Button, EditableText, Greet, Menu, TilePanel)
+
 # car_plus_plus
 car_plus_plus is a very low-level text editor. "car" stands for the Romanian "caracter" (English: character).
 
-You can use almost all the common controls shared by most text editors. 
+You can use almost all the common controls shared by most text editors.
 - shift+arrows = custom selection
 - ctrl+X = cut
 - ctrl+C = copy
@@ -12,6 +14,27 @@ However, don't use ctrl+Z (undo), because it is not yet implemented (and probabl
 
 To navigate through the menu, use arrows+enter.
 Important: when you set the colors, the program ensures that background != text != cursor, so if they are not updated, it is not a bug.
+
+## Configuration & Asset Management
+
+The application loads its settings, menu localizations, and structural assets dynamically at runtime using relative paths based on the application's execution directory.
+
+### Prerequisites for Running Standalone
+When building the project via CMake, a custom post-build step automatically copies the `config` and `assets` directories directly to the build output folder (where the executable binary resides).
+
+If you copy or move the built executable (`./oop`), you **must** ensure that the `config/` and `assets/` folders are kept in the exact same directory as the executable.
+
+```text
+.
+├── oop (executable)
+├── config/
+│   ├── settings.txt
+│   ├── menu_eng.txt
+│   └── menu_ro.txt
+└── assets/
+    ├── font.txt
+    └── tilePanelData.txt
+```
 
 ## License
 
@@ -35,3 +58,4 @@ The file picker dialogs (`Open From Disk`) rely on a native desktop backend to g
 On Ubuntu/Debian, you can install the most common backend by running:
 ```bash
 sudo apt update && sudo apt install zenity
+```

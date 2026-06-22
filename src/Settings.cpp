@@ -16,8 +16,7 @@
 #include "../include/AppExceptions.h"
 
 void Settings::loadSettings(const bool resetDefaults) {
-    const std::filesystem::path sourcePath = SOURCE_DIR;
-    const std::filesystem::path settingsFile = sourcePath / "config" / "settings.txt";
+    const std::filesystem::path settingsFile = std::filesystem::current_path() / "config" / "settings.txt";
 
     std::ifstream input(settingsFile);
 
@@ -66,8 +65,7 @@ void Settings::loadSettings(const bool resetDefaults) {
 }
 
 void Settings::storeSettings() const {
-    const std::filesystem::path sourcePath = SOURCE_DIR;
-    const std::filesystem::path settingsFile = sourcePath / "config" / "settings.txt";
+    const std::filesystem::path settingsFile = std::filesystem::current_path() / "config" / "settings.txt";
 
     std::ofstream output(settingsFile);
     output << static_cast<int>(windowW) << " " << static_cast<int>(windowH) << "\n" << pixelSize

@@ -28,8 +28,7 @@ void TilePanel::createTilePanel() {
     cursorVertexArray.clear();
     cursorVertexArray.setPrimitiveType(sf::PrimitiveType::Triangles);
 
-    const std::filesystem::path sourcePath = SOURCE_DIR;
-    const std::filesystem::path dataPath = sourcePath / "assets" / "tilePanelData.txt";
+    const std::filesystem::path dataPath = std::filesystem::current_path() / "assets" / "tilePanelData.txt";
 
     std::ifstream input(dataPath);
     if (!input.is_open()) {
