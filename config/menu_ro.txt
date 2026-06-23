@@ -11,12 +11,28 @@ Item: Mod AI -> 11
 ID: 1
 Return: 0
 Title: SETARI - ESC PENTRU IESIRE
-Item: Culoare Fundal -> 2
-Item: Culoare Text -> 3
-Item: Culoare Cursor -> 4
+Item: Alege Tema -> 16
+Item: Culori Personalizate -> 17
 Item: Dimensiune Pixel -> 5
 Item: Schimba Limba -> 15
 Item: Restabileste Implicite -> 6
+
+[Menu]
+ID: 16
+Return: 1
+Title: ALEGE TEMA - ESC PENTRU IESIRE
+Item: Tema Luminoasa -> 18
+Item: Tema Intunecata -> 19
+Item: Tema Matrix -> 20
+Item: Tema Moderna -> 21
+
+[Menu]
+ID: 17
+Return: 1
+Title: CULORI PERSONALIZATE - ESC PENTRU IESIRE
+Item: Culoare Fundal -> 2
+Item: Culoare Text -> 3
+Item: Culoare Cursor -> 4
 
 [Menu]
 ID: 5

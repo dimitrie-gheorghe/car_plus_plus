@@ -50,6 +50,7 @@ file(GLOB_RECURSE SOURCE_FILES "src/*.cpp")
 add_executable(${MAIN_EXECUTABLE_NAME}
         main.cpp
         ${SOURCE_FILES}
+        include/SingletonTemplate.h
 )
 
 set_compiler_flags(RUN_SANITIZERS ${USE_ASAN} TARGET_NAMES ${MAIN_EXECUTABLE_NAME})

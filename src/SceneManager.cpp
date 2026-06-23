@@ -26,6 +26,7 @@
 #include "../include/Menu.h"
 #include "../include/TilePanel.h"
 #include "../include/Scene.h"
+#include "../include/ThemeFactory.h"
 
 void SceneManager::updateBackground() {
     background.clear();
@@ -114,6 +115,55 @@ void SceneManager::createButtons() {
                 },
                 SceneID::SettingsMenu
             }
+        },
+        // Append these rules inside your existing buttonRegistry map:
+        {
+            SceneID::ThemeLight, {
+                [] {
+                    Theme t = ThemeFactory::createTheme(ThemeFactory::Type::Light);
+                    Settings::getInstance().set_background_color(t.background);
+                    Settings::getInstance().set_text_color(t.text);
+                    Settings::getInstance().set_cursor_color(t.cursor);
+                    Settings::getInstance().update();
+                },
+                SceneID::ChooseThemeMenu
+            }
+        },
+        {
+            SceneID::ThemeDark, {
+                [] {
+                    Theme t = ThemeFactory::createTheme(ThemeFactory::Type::Dark);
+                    Settings::getInstance().set_background_color(t.background);
+                    Settings::getInstance().set_text_color(t.text);
+                    Settings::getInstance().set_cursor_color(t.cursor);
+                    Settings::getInstance().update();
+                },
+                SceneID::ChooseThemeMenu
+            }
+        },
+        {
+            SceneID::ThemeMatrix, {
+                [] {
+                    Theme t = ThemeFactory::createTheme(ThemeFactory::Type::Matrix);
+                    Settings::getInstance().set_background_color(t.background);
+                    Settings::getInstance().set_text_color(t.text);
+                    Settings::getInstance().set_cursor_color(t.cursor);
+                    Settings::getInstance().update();
+                },
+                SceneID::ChooseThemeMenu
+            }
+        },
+        {
+            SceneID::ThemeModern, {
+                [] {
+                    Theme t = ThemeFactory::createTheme(ThemeFactory::Type::Modern);
+                    Settings::getInstance().set_background_color(t.background);
+                    Settings::getInstance().set_text_color(t.text);
+                    Settings::getInstance().set_cursor_color(t.cursor);
+                    Settings::getInstance().update();
+                },
+                SceneID::ChooseThemeMenu
+            }
         }
     };
     for (auto &[id, config]: buttonRegistry)
@@ -128,9 +178,9 @@ void SceneManager::createScenes() {
     std::string cursorTitle = eng ? "Cursor: Enter to select" : "Cursor: Enter pentru selectie";
     std::string aiTitle = eng ? "malware successfully installed" : "malware instalat cu succes";
 
-    scenes[SceneID::BackgroundSettings] = std::make_unique<TilePanel>(window, bgTitle, 0, SceneID::SettingsMenu);
-    scenes[SceneID::TextSettings] = std::make_unique<TilePanel>(window, textTitle, 1, SceneID::SettingsMenu);
-    scenes[SceneID::CursorSettings] = std::make_unique<TilePanel>(window, cursorTitle, 2, SceneID::SettingsMenu);
+    scenes[SceneID::BackgroundSettings] = std::make_unique<TilePanel>(window, bgTitle, 0, SceneID::CustomColorsMenu);
+    scenes[SceneID::TextSettings] = std::make_unique<TilePanel>(window, textTitle, 1, SceneID::CustomColorsMenu);
+    scenes[SceneID::CursorSettings] = std::make_unique<TilePanel>(window, cursorTitle, 2, SceneID::CustomColorsMenu);
     scenes[SceneID::AIMode] = std::make_unique<Greet>(window, aiTitle, SceneID::Exit);
 
     std::string filename = eng ? "menu_eng.txt" : "menu_ro.txt";
@@ -195,7 +245,6 @@ void SceneManager::createScenes() {
     buildActiveMenu();
     menuFile.close();
 }
-
 
 SceneManager::SceneManager() {
     window.create(sf::VideoMode({

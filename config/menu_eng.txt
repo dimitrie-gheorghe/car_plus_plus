@@ -11,12 +11,28 @@ Item: AI Mode -> 11
 ID: 1
 Return: 0
 Title: SETTINGS - ESC TO EXIT
-Item: Background Color -> 2
-Item: Text Color -> 3
-Item: Cursor Color -> 4
+Item: Choose Theme -> 16
+Item: Custom Colors -> 17
 Item: Pixel Size -> 5
 Item: Change Language -> 15
 Item: Restore Defaults -> 6
+
+[Menu]
+ID: 16
+Return: 1
+Title: CHOOSE THEME - ESC TO EXIT
+Item: Light Theme -> 18
+Item: Dark Theme -> 19
+Item: Matrix Theme -> 20
+Item: Modern Theme -> 21
+
+[Menu]
+ID: 17
+Return: 1
+Title: CUSTOM COLORS - ESC TO EXIT
+Item: Background Color -> 2
+Item: Text Color -> 3
+Item: Cursor Color -> 4
 
 [Menu]
 ID: 5

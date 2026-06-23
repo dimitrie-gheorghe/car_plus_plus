@@ -83,15 +83,6 @@ Settings::Settings() {
     loadSettings();
 }
 
-Settings &Settings::getInstance() {
-    static Settings instance;
-    return instance;
-}
-
-Settings::~Settings() {
-    storeSettings();
-}
-
 void Settings::update(const bool resetDefaults) {
     if (resetDefaults) {
         loadSettings(resetDefaults);

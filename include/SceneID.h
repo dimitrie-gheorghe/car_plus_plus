@@ -21,7 +21,13 @@ enum class SceneID {
     TextEditor = 12,
     Exit = 13,
     Intro = 14,
-    ToggleLanguage = 15
+    ToggleLanguage = 15,
+    ChooseThemeMenu = 16,
+    CustomColorsMenu = 17,
+    ThemeLight = 18,
+    ThemeDark = 19,
+    ThemeMatrix = 20,
+    ThemeModern = 21
 };
 
 

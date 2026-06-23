@@ -5,17 +5,18 @@
 #ifndef OOP_FONTMANAGER_H
 #define OOP_FONTMANAGER_H
 
-#include <filesystem>
+#include <ostream>
 
-class FontManager {
+#include "SingletonTemplate.h"
+
+class FontManager : public SingletonTemplate<FontManager> {
+    friend class SingletonTemplate;
+
     uint8_t ascii[8 * 95]{};
-
     FontManager();
 
 public:
-    friend std::ostream &operator<<(std::ostream &os, const FontManager &);
-
-    static const FontManager &getInstance();
+    ~FontManager() = default;
 
     [[nodiscard]] uint8_t getByte(size_t index) const;
 };

@@ -7,8 +7,13 @@
 
 #include <filesystem>
 #include <SFML/Graphics.hpp>
+#include "SingletonTemplate.h"
 
-class Settings {
+class Settings : public SingletonTemplate<Settings> {
+    friend class SingletonTemplate<Settings>;
+
+    Settings();
+
     int16_t windowW = 800;
     int16_t windowH = 700;
     int16_t pixelSize = 2;
@@ -26,15 +31,7 @@ class Settings {
 public:
     friend std::ostream &operator<<(std::ostream &os, const Settings &obj);
 
-    Settings();
-
-    Settings(const Settings &) = delete;
-
-    Settings &operator=(const Settings &) = delete;
-
-    static Settings &getInstance();
-
-    virtual ~Settings();
+    ~Settings() = default;
 
     void update(bool resetDefaults = false);
 
