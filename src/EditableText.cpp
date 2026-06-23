@@ -296,7 +296,7 @@ void EditableText::setupInfoBanner() {
     // I add \b for unknown chars in my code (in order to maintain the one byte ascii logic),
     // but when saving, I replace them with the UTF-8 replacement char (which is more bytes long)
     std::string result;
-    constexpr std::string replacement = "\xEF\xBF\xBD"; // UTF-8 replacement char
+    constexpr std::string_view replacement = "\xEF\xBF\xBD"; // UTF-8 replacement char
 
     for (const char c: text) {
         if (c == '\b') {
