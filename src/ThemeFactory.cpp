@@ -31,9 +31,9 @@ Theme ThemeFactory::createTheme(const Type type) {
         }
         case Type::Modern: {
             return {
-                sf::Color(20, 5, 30),
-                sf::Color(255, 0, 128),
-                sf::Color(0, 255, 255)
+                sf::Color(40, 40, 147),
+                sf::Color(255, 255, 0),
+                sf::Color(255, 0, 0)
             };
         }
     }
