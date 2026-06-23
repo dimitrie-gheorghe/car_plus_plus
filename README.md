@@ -8,11 +8,29 @@ You can use almost all the common controls shared by most text editors.
 - ctrl+V = paste
 - ctrl+A = select all
 
-However, don't use ctrl+Z (undo), because it is not yet implemented (and probably it will never be).
-
 To navigate through the menu, use arrows+enter.
 Important: when you set the colors, the program ensures that background != text != cursor, so if they are not updated, it is not a bug.
 
+## Limitations
+
+- Don't use ctrl+Z (undo), because it is not yet implemented (and probably it will never be).
+- The editor only supports ascii chars. typing non-ascii will add a default 'unknown char'
+
+## The font
+
+- The font is hard-codded and hand-made
+- Each char is an 8*8 matrix coded like this (a question mark as example):
+```text
+0b01111110 == 126          oooooo
+0b11000011 == 195         oo    oo
+0b10000011 == 131         o     oo
+0b00011110 ==  30            oooo
+0b00011000 ==  24            oo
+0b00000000 ==   0         
+0b00011000 ==  24            oo   
+0b00011000 ==  24            oo
+```
+- These numbers are stored in the font.txt file
 ## Configuration & Asset Management
 
 The application loads its settings, menu localizations, and structural assets dynamically at runtime using relative paths based on the application's execution directory.
