@@ -122,14 +122,14 @@ void TilePanel::manageEvent() {
                     }
                     Settings::getInstance().update();
                 }
-                setSceneToReturnAt(SceneID::SettingsMenu);
                 exit();
                 return;
             }
-            case sf::Keyboard::Scancode::Escape: setSceneToReturnAt(SceneID::SettingsMenu);
+            case sf::Keyboard::Scancode::Escape:
                 exit();
                 return;
-            default: break;
+            default:
+                break;
         }
         if (cursorX < 0) {
             cursorX = 0;

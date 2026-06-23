@@ -19,7 +19,7 @@ Theme ThemeFactory::createTheme(const Type type) {
             return {
                 sf::Color(30, 30, 30),
                 sf::Color(240, 240, 240),
-                sf::Color(0, 255, 0)
+                sf::Color(127, 127, 127)
             };
         }
         case Type::Matrix: {
