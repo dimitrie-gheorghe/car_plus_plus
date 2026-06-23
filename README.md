@@ -14,7 +14,7 @@ Important: when you set the colors, the program ensures that background != text 
 ## Limitations
 
 - Don't use ctrl+Z (undo), because it is not yet implemented (and probably it will never be).
-- The editor only supports ascii chars. typing non-ascii will add a default 'unknown char'
+- The editor only supports ascii chars. Typing a non-ascii char will add a default 'unknown char'.
 
 ## The font
 
