@@ -77,7 +77,6 @@ public:
 
     void begin() override;
 
-    void resume() override;
 };
 
 

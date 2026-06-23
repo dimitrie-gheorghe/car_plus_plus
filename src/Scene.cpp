@@ -11,10 +11,6 @@ Scene::Scene(sf::RenderWindow &w, const SceneID sceneToReturnAt_)
     : sceneToReturnAt(sceneToReturnAt_), defaultSceneToReturnAt(sceneToReturnAt_), window(w) {
 }
 
-void Scene::resume() {
-    requestExit = false;
-}
-
 void Scene::end() {
     requestExit = false;
     sceneToReturnAt = defaultSceneToReturnAt;

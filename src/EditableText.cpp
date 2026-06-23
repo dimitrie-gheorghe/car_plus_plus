@@ -58,12 +58,14 @@ void EditableText::updateVertexArray() {
         }
     }
 
-    if (formattedCursorR == formattedText.size()) formattedText += " ";
+    if (formattedCursorR == formattedText.size()) {
+        formattedText += " ";
+    }
 
     size_t visibleTextL = 0;
     size_t visibleTextR = formattedText.size();
     const size_t maxChars = (W * H) / (charPoz * charPoz);
-    size_t focusCursor = (selectionHead == &cursorL) ? formattedCursorL : formattedCursorR;
+    const size_t focusCursor = (selectionHead == &cursorL) ? formattedCursorL : formattedCursorR;
 
     while (focusCursor - visibleTextL + step >= maxChars) visibleTextL += step;
     if (visibleTextL + maxChars < visibleTextR) visibleTextR = visibleTextL + maxChars;
@@ -228,9 +230,15 @@ void EditableText::manageEvent() {
                     deleteSelectedText();
                 }
             }
-        } else if ((c >= 32 && c < 127) || c == '\n' || c == '\t') {
+        } else if ((c >= 32 && c < 127) || c == '\n' || c == '\t' || c == '\r') { // added \r for linux compliance
             deleteSelectedText();
-            text.insert(cursorR++, 1, c);
+
+            // Normalize OS-specific carriage returns to standard newlines
+            // This is why enter didn't work on linux.
+            // Now I also handle \r (converting it to \n in order to preserve current logic)
+            char charToInsert = (c == '\r') ? '\n' : c;
+
+            text.insert(cursorR++, 1, charToInsert);
             cursorL = cursorR;
         }
         updateVertexArray();
@@ -300,12 +308,6 @@ void EditableText::draw() {
 void EditableText::begin() {
     setupInfoBanner();
     updateVertexArray();
-}
-
-void EditableText::resume() {
-    Scene::resume();
-    ctrl = false;
-    shift = false;
 }
 
 void EditableText::reset() {

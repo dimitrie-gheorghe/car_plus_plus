@@ -24,7 +24,7 @@ class SceneManager {
 
     bool handleFileOperation(SceneID action);
 
-    [[nodiscard]] Scene *resolve(const SceneID id);
+    [[nodiscard]] Scene *resolve(SceneID id);
 
     void createButtons();
 

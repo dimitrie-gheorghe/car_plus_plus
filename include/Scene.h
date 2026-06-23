@@ -47,13 +47,11 @@ public:
 
     virtual void begin() = 0;
 
-    virtual void resume();
-
     void end();
 
     void manageEvent(const sf::Event &e);
 
-    void setSceneToReturnAt(const SceneID id);
+    void setSceneToReturnAt(SceneID id);
 
     [[nodiscard]] SceneID getSceneToReturnAt() const;
 

@@ -268,8 +268,9 @@ void SceneManager::run() {
     while (window.isOpen()) {
         while (auto e = window.pollEvent()) {
             if (e->is<sf::Event::Closed>()) {
-                window.close();
-                return;
+                currentScene->setSceneToReturnAt(SceneID::Exit);
+                currentScene->exit();
+                break;
             }
             if (const auto *resized = e->getIf<sf::Event::Resized>()) {
                 sf::FloatRect visibleArea({0.f, 0.f}, sf::Vector2f(resized->size));
@@ -289,18 +290,14 @@ void SceneManager::run() {
             if (const auto *editor = dynamic_cast<EditableText *>(currentScene)) {
                 bool eng = Settings::getInstance().getIsEnglish();
                 std::string title = eng ? "Save Changes" : "Salveaza Modificarile";
-                std::string message = eng
-                                          ? "Save changes before closing?"
-                                          : "Salvati modificarile inainte de a inchide?";
-                auto box = pfd::message(title, message, pfd::choice::yes_no_cancel, pfd::icon::question);
-                auto result = box.result();
+                std::string message = eng ? "Save changes before closing?" : "Salvati modificarile inainte de a inchide?";
 
-                if (result == pfd::button::cancel) {
-                    currentScene->resume();
-                    continue;
-                }
-                if (result == pfd::button::yes) {
-                    if (std::ofstream output(editor->getFilePath()); output.is_open()) output << editor->getText();
+                auto box = pfd::message(title, message, pfd::choice::yes_no, pfd::icon::question);
+
+                if (auto result = box.result(); result == pfd::button::yes) {
+                    if (std::ofstream output(editor->getFilePath()); output.is_open()) {
+                        output << editor->getText();
+                    }
                 }
             }
 
