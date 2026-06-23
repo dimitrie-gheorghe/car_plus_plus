@@ -79,12 +79,12 @@ void EditableText::updateVertexArray() {
                                                     static_cast<int16_t>(Settings::getInstance().pixel_size() * 9),
                                                     Settings::getInstance().cursor_color());
             }
-            if ('!' <= formattedText[visibleTextL] && formattedText[visibleTextL] <= '~') {
-                VertexArrayUtility::insertChar(textVertexArray, formattedText[visibleTextL],
-                                               static_cast<int16_t>(c), static_cast<int16_t>(r),
-                                               Settings::getInstance().pixel_size(),
-                                               Settings::getInstance().text_color());
-            }
+
+            VertexArrayUtility::insertChar(textVertexArray, formattedText[visibleTextL],
+                                           static_cast<int16_t>(c), static_cast<int16_t>(r),
+                                           Settings::getInstance().pixel_size(),
+                                           Settings::getInstance().text_color());
+
             visibleTextL++;
         }
     }
@@ -230,15 +230,21 @@ void EditableText::manageEvent() {
                     deleteSelectedText();
                 }
             }
-        } else if ((c >= 32 && c < 127) || c == '\n' || c == '\t' || c == '\r') { // added \r for linux compliance
+        } else if ((c >= 32 && c < 127) || c == '\n' || c == '\t' || c == '\r') {
+            // added \r for linux compliance
             deleteSelectedText();
 
             // Normalize OS-specific carriage returns to standard newlines
             // This is why enter didn't work on linux.
             // Now I also handle \r (converting it to \n in order to preserve current logic)
-            char charToInsert = (c == '\r') ? '\n' : c;
+            const char charToInsert = (c == '\r') ? '\n' : c;
 
             text.insert(cursorR++, 1, charToInsert);
+            cursorL = cursorR;
+        } else {
+            deleteSelectedText();
+
+            text.insert(cursorR++, 1, 8); // insert a backspace. At save it will be replaced with an unknown char
             cursorL = cursorR;
         }
         updateVertexArray();
@@ -287,7 +293,19 @@ void EditableText::setupInfoBanner() {
 }
 
 [[nodiscard]] std::string EditableText::getText() const {
-    return text;
+    // I add \b for unknown chars in my code (in order to maintain the one byte ascii logic),
+    // but when saving, I replace them with the UTF-8 replacement char (which is more bytes long)
+    std::string result;
+    constexpr std::string replacement = "\xEF\xBF\xBD"; // UTF-8 replacement char
+
+    for (const char c: text) {
+        if (c == '\b') {
+            result += replacement;
+        } else {
+            result += c;
+        }
+    }
+    return result;
 }
 
 [[nodiscard]] std::unique_ptr<Scene> EditableText::clone() const {
