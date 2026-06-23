@@ -32,7 +32,8 @@ std::ostream &operator<<(std::ostream &os, const FontManager &fm) {
     // Actually I use these functions (look at VertexArrayUtility::insertChar() in VertexArrayUtility.cpp)
     // Dummy calls to silence cppcheck's isolated file scanner.
     // The compiler will optimize these away entirely, but cppcheck will register them as "used".
-    //(void)fm.getByte(0);
+    (void)fm.getByte(0);
+    (void)FontManager::getInstance();
 
     os << "FontManager (Singleton Instance holding custom ASCII definitions)";
     return os;
