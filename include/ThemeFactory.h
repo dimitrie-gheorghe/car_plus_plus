@@ -5,6 +5,7 @@
 #ifndef OOP_THEME_H
 #define OOP_THEME_H
 
+#include <iosfwd>
 #include "SFML/Graphics/Color.hpp"
 
 struct Theme {
@@ -23,6 +24,8 @@ public:
     };
 
     static Theme createTheme(Type type);
+
+    friend std::ostream &operator<<(std::ostream &os, const ThemeFactory &tf);
 };
 
 #endif //OOP_THEME_H

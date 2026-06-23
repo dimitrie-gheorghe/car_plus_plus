@@ -4,6 +4,7 @@
 
 #include "../include/ThemeFactory.h"
 #include "SFML/Graphics/Color.hpp"
+#include <ostream>
 
 Theme ThemeFactory::createTheme(const Type type) {
     switch (type) {
@@ -41,4 +42,15 @@ Theme ThemeFactory::createTheme(const Type type) {
         sf::Color::Black,
         sf::Color::Green
     };
+}
+
+std::ostream &operator<<(std::ostream &os, const ThemeFactory &) {
+    // This was the ultimate solution to silence the cppCheck's unused errors
+    // Actually I use this function (look at SceneManager::createButtons() in SceneManager.cpp)
+    // Dummy calls to silence cppcheck's isolated file scanner.
+    // The compiler will optimize these away entirely, but cppcheck will register them as "used".
+    (void)ThemeFactory::createTheme(ThemeFactory::Type::Light);
+
+    os << "ThemeFactory (Static factory for generating UI color profiles)";
+    return os;
 }

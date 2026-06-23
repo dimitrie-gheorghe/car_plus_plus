@@ -29,7 +29,11 @@ class Settings : public SingletonTemplate<Settings> {
     void storeSettings() const;
 
 public:
-    friend std::ostream &operator<<(std::ostream &os, const Settings &obj);
+
+    Settings(const Settings&) = delete;
+    Settings& operator=(const Settings&) = delete;
+    Settings(Settings&&) = delete;
+    Settings& operator=(Settings&&) = delete;
 
     ~Settings() = default;
 
@@ -60,6 +64,8 @@ public:
     void set_text_color(const sf::Color &text_color);
 
     void set_cursor_color(const sf::Color &cursor_color);
+
+    friend std::ostream &operator<<(std::ostream &os, const Settings &obj);
 };
 
 #endif //OOP_SETTINGS_H

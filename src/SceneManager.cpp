@@ -120,10 +120,10 @@ void SceneManager::createButtons() {
         {
             SceneID::ThemeLight, {
                 [] {
-                    Theme t = ThemeFactory::createTheme(ThemeFactory::Type::Light);
-                    Settings::getInstance().set_background_color(t.background);
-                    Settings::getInstance().set_text_color(t.text);
-                    Settings::getInstance().set_cursor_color(t.cursor);
+                    auto [background_, text_, cursor_] = ThemeFactory::createTheme(ThemeFactory::Type::Light);
+                    Settings::getInstance().set_background_color(background_);
+                    Settings::getInstance().set_text_color(text_);
+                    Settings::getInstance().set_cursor_color(cursor_);
                     Settings::getInstance().update();
                 },
                 SceneID::ChooseThemeMenu
@@ -132,10 +132,10 @@ void SceneManager::createButtons() {
         {
             SceneID::ThemeDark, {
                 [] {
-                    Theme t = ThemeFactory::createTheme(ThemeFactory::Type::Dark);
-                    Settings::getInstance().set_background_color(t.background);
-                    Settings::getInstance().set_text_color(t.text);
-                    Settings::getInstance().set_cursor_color(t.cursor);
+                    auto [background_, text_, cursor_] = ThemeFactory::createTheme(ThemeFactory::Type::Dark);
+                    Settings::getInstance().set_background_color(background_);
+                    Settings::getInstance().set_text_color(text_);
+                    Settings::getInstance().set_cursor_color(cursor_);
                     Settings::getInstance().update();
                 },
                 SceneID::ChooseThemeMenu
@@ -144,10 +144,10 @@ void SceneManager::createButtons() {
         {
             SceneID::ThemeMatrix, {
                 [] {
-                    Theme t = ThemeFactory::createTheme(ThemeFactory::Type::Matrix);
-                    Settings::getInstance().set_background_color(t.background);
-                    Settings::getInstance().set_text_color(t.text);
-                    Settings::getInstance().set_cursor_color(t.cursor);
+                    auto [background_, text_, cursor_] = ThemeFactory::createTheme(ThemeFactory::Type::Matrix);
+                    Settings::getInstance().set_background_color(background_);
+                    Settings::getInstance().set_text_color(text_);
+                    Settings::getInstance().set_cursor_color(cursor_);
                     Settings::getInstance().update();
                 },
                 SceneID::ChooseThemeMenu
@@ -156,10 +156,10 @@ void SceneManager::createButtons() {
         {
             SceneID::ThemeModern, {
                 [] {
-                    Theme t = ThemeFactory::createTheme(ThemeFactory::Type::Modern);
-                    Settings::getInstance().set_background_color(t.background);
-                    Settings::getInstance().set_text_color(t.text);
-                    Settings::getInstance().set_cursor_color(t.cursor);
+                    auto [background_, text_, cursor_] = ThemeFactory::createTheme(ThemeFactory::Type::Modern);
+                    Settings::getInstance().set_background_color(background_);
+                    Settings::getInstance().set_text_color(text_);
+                    Settings::getInstance().set_cursor_color(cursor_);
                     Settings::getInstance().update();
                 },
                 SceneID::ChooseThemeMenu
