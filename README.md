@@ -1,6 +1,11 @@
 # car_plus_plus
 car_plus_plus is a very low-level text editor. "car" stands for the Romanian "caracter" (English: character).
 
+## Demo
+  ![text_editor_demo_light](./images/text_editor_demo_light.png)
+
+## Features
+
 You can use almost all the common controls shared by most text editors.
 - Windows/Linux:
   - shift+arrows = custom selection
@@ -21,6 +26,34 @@ You can use almost all the common controls shared by most text editors.
 
 To navigate through the menu, use arrows+enter.
 Important: when you set the colors, the program ensures that background != text != cursor, so if they are not updated, it is not a bug.
+
+## Gallery
+  ![main_menu](./images/main_menu.png)
+  ![text_editor_demo_dark](./images/text_editor_demo_dark.png)
+  ![text_editor_demo_matrix](./images/text_editor_demo_matrix.png)
+  ![text_editor_demo_modern](./images/text_editor_demo_modern.png)
+  ![tile_panel_demo](./images/tile_panel_demo.png)
+
+## Menu hierarchy
+ - main menu
+   - new file
+   - open from disk
+   - settings
+     - choose theme
+       - light theme
+       - dark theme
+       - matrix theme
+       - modern theme
+     - custom colors
+       - background color
+       - text color
+       - cursor color
+     - pixel size
+       - increase
+       - decrease
+     - change language (toggles between English and Romanian)
+     - restore defaults
+   - AI Mode
 
 ## Limitations
 
@@ -43,7 +76,7 @@ Important: when you set the colors, the program ensures that background != text 
 ```
 - These numbers are stored in the font.txt file
 - Here is an excerpt from the original font.txt file
-  ![font demo](./images/font_demo.png)
+  ![font_demo](./images/font_demo.png)
 ## Configuration & Asset Management
 
 The application loads its settings, menu localizations, and structural assets dynamically at runtime using relative paths based on the application's execution directory.
