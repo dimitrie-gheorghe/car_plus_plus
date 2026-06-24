@@ -33,6 +33,7 @@ class EditableText : public Scene {
     size_t step = 0;
     bool ctrl = false;
     bool shift = false;
+    bool cmd = false;
 
     ReadOnlyText infoBanner;
 

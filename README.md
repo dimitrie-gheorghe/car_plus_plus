@@ -2,11 +2,22 @@
 car_plus_plus is a very low-level text editor. "car" stands for the Romanian "caracter" (English: character).
 
 You can use almost all the common controls shared by most text editors.
-- shift+arrows = custom selection
-- ctrl+X = cut
-- ctrl+C = copy
-- ctrl+V = paste
-- ctrl+A = select all
+- Windows/Linux:
+  - shift+arrows = custom selection
+  - Ctrl+X = cut
+  - Ctrl+C = copy
+  - Ctrl+V = paste
+  - Ctrl+A = select all
+  - Ctrl + Left / Right: Moves the text cursor word-by-word without highlighting anything.
+  - Ctrl + Shift + Left / Right: Expands or shrinks the text selection word-by-word.
+- Mac:
+    - shift+arrows = custom selection
+    - Command+X = cut
+    - Command+C = copy
+    - Command+V = paste
+    - Command+A = select all
+    - Alt + Left / Right: Moves the text cursor word-by-word without highlighting anything.
+    - Alt + Shift + Left / Right: Expands or shrinks the text selection word-by-word. 
 
 To navigate through the menu, use arrows+enter.
 Important: when you set the colors, the program ensures that background != text != cursor, so if they are not updated, it is not a bug.
@@ -31,6 +42,8 @@ Important: when you set the colors, the program ensures that background != text 
 0b00011000 ==  24            oo
 ```
 - These numbers are stored in the font.txt file
+- Here is an excerpt from the original font.txt file
+  ![font demo](./images/font_demo.png)
 ## Configuration & Asset Management
 
 The application loads its settings, menu localizations, and structural assets dynamically at runtime using relative paths based on the application's execution directory.
