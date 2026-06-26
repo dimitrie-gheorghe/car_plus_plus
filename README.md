@@ -8,30 +8,30 @@ car_plus_plus is a very low-level text editor. "car" stands for the Romanian "ca
 
 You can use almost all the common controls shared by most text editors.
 - Windows/Linux:
-  - shift+arrows = custom selection
-  - Ctrl+X = cut
-  - Ctrl+C = copy
-  - Ctrl+V = paste
-  - Ctrl+A = select all
+  - Shift + arrows = custom selection
+  - Ctrl + X = cut
+  - Ctrl + C = copy
+  - Ctrl + V = paste
+  - Ctrl + A = select all
   - Ctrl + Left / Right: Moves the text cursor word-by-word without highlighting anything.
   - Ctrl + Shift + Left / Right: Expands or shrinks the text selection word-by-word.
 - Mac:
-    - shift+arrows = custom selection
-    - Command+X = cut
-    - Command+C = copy
-    - Command+V = paste
-    - Command+A = select all
-    - Alt + Left / Right: Moves the text cursor word-by-word without highlighting anything.
-    - Alt + Shift + Left / Right: Expands or shrinks the text selection word-by-word. 
+  - Shift + arrows = custom selection
+  - Command + X = cut
+  - Command + C = copy
+  - Command + V = paste
+  - Command + A = select all
+  - Alt + Left / Right: Moves the text cursor word-by-word without highlighting anything.
+  - Alt + Shift + Left / Right: Expands or shrinks the text selection word-by-word. 
 
 To navigate through the menu, use arrows+enter.
 Important: when you set the colors, the program ensures that background != text != cursor, so if they are not updated, it is not a bug.
 
 ## Gallery
   ![main_menu](./images/main_menu.png)
-  ![text_editor_demo_dark](./images/text_editor_demo_dark.png)
-  ![text_editor_demo_matrix](./images/text_editor_demo_matrix.png)
-  ![text_editor_demo_modern](./images/text_editor_demo_modern.png)
+  ![dark_theme](./images/dark_theme.png)
+  ![matrix_theme](./images/matrix_theme.png)
+  ![modern_theme](./images/modern_theme.png)
   ![tile_panel_demo](./images/tile_panel_demo.png)
 
 ## Menu hierarchy
